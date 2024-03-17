@@ -11,4 +11,6 @@ interface Uploadable
     public function url(string $file): ?string;
 
     public function delete(string $file): bool;
+
+    public function exists(string $file): bool;
 }

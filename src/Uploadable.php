@@ -43,4 +43,9 @@ class Uploadable implements UploadableContract
     {
         return $this->storage->delete($file);
     }
+
+    public function exists(string $file) : bool
+    {
+        return $this->storage->exists($file);
+    }
 }
