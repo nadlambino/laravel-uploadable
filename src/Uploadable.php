@@ -39,6 +39,15 @@ class Uploadable implements UploadableContract
         return $this->config->host . $path;
     }
 
+    public function temporaryUrl(string $file, int $expiration = 60, array $options = []) : ?string
+    {
+        try {
+            return $this->storage->temporaryUrl($file, now()->addMinutes($expiration), $options);
+        } catch (\Exception) {
+            return $this->url($file);
+        }
+    }
+
     public function delete(string $file) : bool
     {
         return $this->storage->delete($file);

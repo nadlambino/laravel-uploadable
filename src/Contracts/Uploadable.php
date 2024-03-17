@@ -10,6 +10,8 @@ interface Uploadable
 
     public function url(string $file): ?string;
 
+    public function temporaryUrl(string $file, int $expiration = 60, array $options = []): ?string;
+
     public function delete(string $file): bool;
 
     public function exists(string $file): bool;
