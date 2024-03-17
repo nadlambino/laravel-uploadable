@@ -26,6 +26,11 @@ class Uploadable implements UploadableContract
         return $this->storage->putFileAs($path, $file, $name);
     }
 
+    public function get(string $file) : ?string
+    {
+        return $this->storage->get($file);
+    }
+
     public function url(string $file) : ?string
     {
         $url = $this->storage->url(trim($file, DIRECTORY_SEPARATOR));
