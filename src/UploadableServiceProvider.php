@@ -2,24 +2,37 @@
 
 namespace NadLambino\Uploadable;
 
+use Illuminate\Support\Facades\Storage;
+use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use NadLambino\Uploadable\Commands\UploadableCommand;
 
 class UploadableServiceProvider extends PackageServiceProvider
 {
+    public function boot() : void
+    {
+        parent::boot();
+
+        $this->app->bind('uploadable', function () {
+            return (object) config('uploadable.env.'.app()->environment());
+        });
+
+        $this->app->bind(\NadLambino\Uploadable\Contracts\Uploadable::class, function ($app) {
+            return new Uploadable(Storage::disk($app['uploadable']->disk));
+        });
+    }
+
     public function configurePackage(Package $package): void
     {
-        /*
-         * This class is a Package Service Provider
-         *
-         * More info: https://github.com/spatie/laravel-package-tools
-         */
         $package
             ->name('uploadable')
+            ->runsMigrations()
             ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_uploadable_table')
-            ->hasCommand(UploadableCommand::class);
+            ->hasMigration('create_uploads_table')
+            ->hasInstallCommand(function (InstallCommand $command) {
+                $command->publishConfigFile()
+                    ->publishMigrations()
+                    ->copyAndRegisterServiceProviderInApp();
+            });
     }
 }
