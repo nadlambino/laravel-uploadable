@@ -38,4 +38,9 @@ class Uploadable implements UploadableContract
 
         return $this->config->host . $path;
     }
+
+    public function delete(string $file) : bool
+    {
+        return $this->storage->delete($file);
+    }
 }
