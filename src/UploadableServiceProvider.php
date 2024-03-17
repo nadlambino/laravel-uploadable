@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace NadLambino\Uploadable;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use VendorName\Skeleton\Commands\SkeletonCommand;
+use NadLambino\Uploadable\Commands\UploadableCommand;
 
-class SkeletonServiceProvider extends PackageServiceProvider
+class UploadableServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
@@ -16,10 +16,10 @@ class SkeletonServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package
-            ->name('skeleton')
+            ->name('uploadable')
             ->hasConfigFile()
             ->hasViews()
-            ->hasMigration('create_skeleton_table')
-            ->hasCommand(SkeletonCommand::class);
+            ->hasMigration('create_uploadable_table')
+            ->hasCommand(UploadableCommand::class);
     }
 }

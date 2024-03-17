@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace NadLambino\Uploadable\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class UploadableCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'uploadable';
 
     public $description = 'My command';
 
