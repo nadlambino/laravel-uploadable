@@ -9,4 +9,6 @@ interface Uploadable
     public function upload(UploadedFile $file, ?string $path = null, ?string $name = null): ?string;
 
     public function url(string $file): ?string;
+
+    public function delete(string $file): bool;
 }
