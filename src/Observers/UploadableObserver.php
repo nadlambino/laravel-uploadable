@@ -22,8 +22,9 @@ readonly class UploadableObserver
 
         try {
             DB::beginTransaction();
+
             /** @var UploadedFile $file */
-            if (method_exists($model, 'getFileUpload') && ($file = $model->getFileUpload())) {
+            if (method_exists($model, 'getUploadable') && ($file = $model->getUploadable())) {
                 $path = $model->getTable() . DIRECTORY_SEPARATOR . $model->id;
                 $name = $file->getClientOriginalName();
                 $fullPath = $this->uploadable->upload($file, $path, $name);
@@ -41,11 +42,16 @@ readonly class UploadableObserver
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
+
             if ($fullPath) {
                 $this->uploadable->delete($fullPath);
             }
+
             $model->delete();
-            throw $exception;
+
+            if (config('uploadable.throw_exception')) {
+                throw $exception;
+            }
         }
     }
 
@@ -53,6 +59,7 @@ readonly class UploadableObserver
     {
         try {
             DB::beginTransaction();
+
             if ($this->uploadable->delete($model->file->path)) {
                 $model->file?->delete();
 
@@ -60,7 +67,10 @@ readonly class UploadableObserver
             }
         } catch (Exception $exception) {
             DB::rollBack();
-            throw $exception;
+
+            if (config('uploadable.throw_exception')) {
+                throw $exception;
+            }
         }
     }
 }
