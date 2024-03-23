@@ -12,6 +12,4 @@ return [
             'path' => 'uploads',
         ],
     ],
-
-    'throw_exception' => true,
 ];
