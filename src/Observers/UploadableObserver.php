@@ -3,6 +3,7 @@
 namespace NadLambino\Uploadable\Observers;
 
 use Exception;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use NadLambino\Uploadable\Uploadable;
@@ -16,7 +17,7 @@ readonly class UploadableObserver
     /**
      * @throws Exception
      */
-    public function created($model) : void
+    public function created(Model $model) : void
     {
         $fullPath = null;
 
@@ -47,7 +48,7 @@ readonly class UploadableObserver
                 $this->uploadable->delete($fullPath);
             }
 
-            $model->delete();
+            $this->deleteQuitely($model);
 
             throw $exception;
         }
@@ -68,5 +69,18 @@ readonly class UploadableObserver
 
             throw $exception;
         }
+    }
+
+    /**
+     * Delete the model without firing any events
+     *
+     * @param Model $model
+     * @return void
+     */
+    private function deleteQuitely(Model $model) : void
+    {
+        DB::table($model->getTable())
+            ->where($model->getKeyName(), $model->{$model->getKeyName()})
+            ->delete();
     }
 }
