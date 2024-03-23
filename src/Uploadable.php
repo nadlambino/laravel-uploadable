@@ -10,11 +10,11 @@ class Uploadable implements UploadableContract
 {
     private string $basePath;
 
-    private object $config;
+    private UploadableConfig $config;
 
     public function __construct(private readonly Filesystem $storage)
     {
-        $this->config = app('uploadable');
+        $this->config = app(UploadableConfig::class);
         $this->basePath = trim($this->config->path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 

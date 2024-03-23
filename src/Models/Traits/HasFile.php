@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Contracts\Uploadable;
 use NadLambino\Uploadable\Models\Upload;
+use NadLambino\Uploadable\Observers\UploadableObserver;
 
 /**
  * @method morphOne(string $class, string $name)
@@ -15,6 +16,11 @@ use NadLambino\Uploadable\Models\Upload;
 trait HasFile
 {
     private ?UploadedFile $uploadedFile = null;
+
+    public static function bootHasFile()
+    {
+        static::observe(UploadableObserver::class);
+    }
 
     public function file() : MorphOne
     {
