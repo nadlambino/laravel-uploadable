@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'env' => [
+    'disks' => [
         'local' => [
             'disk' => 'public',
             'path' => 'uploads',
