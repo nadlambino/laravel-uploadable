@@ -20,7 +20,7 @@ php artisan vendor:publish --tag="uploadable-migrations"
 php artisan migrate
 ```
 
-Note: You can add more fields in the uploads table but the default fields should remain.
+>**NOTE:** You can add more fields in the uploads table but the default fields should remain.
 
 You can publish the config file with:
 
@@ -48,7 +48,7 @@ return [
 ];
 ```
 
-Note: If you are running your application on another server like `development` or `staging`, you should add the disk mapping here.
+>**NOTE:** If you are running your application on another server like `development` or `staging`, you should add the disk mapping here.
 
 ## Usage
 
@@ -96,7 +96,7 @@ protected function uploadRules() : array
 }
 ```
 
-Note: File upload happens once the model `created` event fired, so make sure that the way you create the uploadable model should firing the `created` event.
+>**NOTE:** File upload happens once the model `created` event fired, so make sure that the way you create the uploadable model should firing the `created` event.
 
 There are already defined relation method for specific upload type.
 ```php
