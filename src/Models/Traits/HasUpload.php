@@ -2,8 +2,10 @@
 
 namespace NadLambino\Uploadable\Models\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Observers\UploadableObserver;
 
@@ -161,5 +163,58 @@ trait HasUpload
             ->all();
 
         return request()->only($fields);
+    }
+
+    /**
+     * Allows you to customize the filename of the uploaded file.
+     * Make sure to return a unique filename to avoid overwriting existing files.
+     *
+     * @param UploadedFile $file
+     * @param Model $model
+     * @return string
+     */
+    public function getUploadFilename(UploadedFile $file, Model $model) : string
+    {
+        return $file->hashName();
+    }
+
+    /**
+     * Allows you to customize the path of the uploaded file.
+     *
+     * @param UploadedFile $file
+     * @param Model $model
+     * @return string
+     */
+    public function getUploadPath(UploadedFile $file, Model $model) : string
+    {
+        return $model->getTable() . DIRECTORY_SEPARATOR . $model->id;
+    }
+
+    /**
+     * Runs before the file has been uploaded and before the upload details are saved in the database.
+     * This method is useful for modifying or storing additional details in uploads table.
+     *
+     * @param UploadedFile $file
+     * @param Model $model
+     * @return void
+     */
+    public function beforeUpload(UploadedFile $file, Model $model) : void
+    {
+
+    }
+
+    /**
+     * Runs after the file has been uploaded and before the upload details are saved in the database.
+     * This method is useful for modifying or storing additional details in uploads table.
+     *
+     * @param Upload $upload
+     * @param UploadedFile $file
+     * @param Model $model
+     * @param string|null $path
+     * @return void
+     */
+    public function afterUpload(Upload $upload, UploadedFile $file, Model $model, ?string $path) : void
+    {
+
     }
 }

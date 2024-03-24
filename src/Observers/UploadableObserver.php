@@ -66,22 +66,36 @@ readonly class UploadableObserver
 
     private function upload(UploadedFile $file, Model $model) : void
     {
-        $path = $model->getTable() . DIRECTORY_SEPARATOR . $model->id;
-        $hashName = $file->hashName();
-        $fullPath = $this->uploadable->upload($file, $path, $hashName);
+        // Before uploading the file, we will run the `beforeUpload` method
+        // to do whatever the uploadable wants to do with the UploadedFile file
+        // and the Uploadable Model.
+        $model->beforeUpload($file, $model);
+
+        $path = $model->getUploadPath($file, $model);
+        $filename = $model->getUploadFilename($file, $model);
+
+        $fullpath = $this->uploadable->upload($file, $path, $filename);
 
         $upload = new Upload();
-        $upload->path = $fullPath;
-        $upload->name = $hashName;
+        $upload->path = $fullpath;
+        $upload->name = $filename;
         $upload->original_name = $file->getClientOriginalName();
         $upload->extension = strtolower($file->getClientOriginalExtension());
         $upload->size = $file->getSize();
         $upload->type = $file->getMimeType();
 
+        // After uploading the file and before saving, we will run the `afterUpload` method
+        // to do whatever the uploadable wants to do with the Upload model, UploadedFile file,
+        // Uploadable Model, and the full path to the file.
+        $model->afterUpload($upload, $file, $model, $fullpath);
+
         $upload->uploadable()->associate($model);
         $upload->save();
     }
 
+    /**
+     * @throws Exception
+     */
     public function deleted($model) : void
     {
         try {
