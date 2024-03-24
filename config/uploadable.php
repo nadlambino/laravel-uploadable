@@ -4,12 +4,12 @@ return [
     'disks' => [
         'local' => [
             'disk' => 'public',
-            'path' => 'uploads',
+            'directory' => 'uploads',
             'host' => request()->getSchemeAndHttpHost(),
         ],
         'production' => [
             'disk' => 's3',
-            'path' => 'uploads',
+            'directory' => 'uploads',
         ],
     ],
 ];
