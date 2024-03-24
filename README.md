@@ -1,19 +1,9 @@
-# A simple implementation for uploading files in Laravel.
+# A simple implementation of uploading files automagically.
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/nadlambino/uploadable.svg?style=flat-square)](https://packagist.org/packages/nadlambino/uploadable)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/nadlambino/uploadable/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/nadlambino/uploadable/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/nadlambino/uploadable/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/nadlambino/uploadable/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/nadlambino/uploadable.svg?style=flat-square)](https://packagist.org/packages/nadlambino/uploadable)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
-
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/uploadable.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/uploadable)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+The <b>Uploadable</b> package is a simple implementation for automatically uploading files. It is designed to streamline and simplify the process of file upload that works on local and production environment, and storing the uploaded file details in the database.
 
 ## Installation
 
@@ -30,6 +20,8 @@ php artisan vendor:publish --tag="uploadable-migrations"
 php artisan migrate
 ```
 
+Note: You can add more fields in the uploads table but the default fields should remain.
+
 You can publish the config file with:
 
 ```bash
@@ -40,20 +32,114 @@ This is the contents of the published config file:
 
 ```php
 return [
+    'disks' => [
+        
+        'local' => [
+            'disk' => 'public',
+            'directory' => 'uploads',
+            'host' => request()->getSchemeAndHttpHost(),
+        ],
+
+        'production' => [
+            'disk' => 's3',
+            'directory' => 'uploads',
+        ],
+    ],
 ];
 ```
 
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="uploadable-views"
-```
+Note: If you are running your application on another server like `development` or `staging`, you should add the disk mapping here.
 
 ## Usage
 
+Simply use the `NadLambino\Uploadable\Models\Traits\HasUpload` trait in the model that needs file uploads.
+
 ```php
-$uploadable = new NadLambino\Uploadable();
-echo $uploadable->echoPhrase('Hello, NadLambino!');
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\UploadedFile;
+use NadLambino\Uploadable\Models\Traits\HasUpload;
+
+class Post extends Model
+{
+    use HasFactory, HasUpload;
+}
+```
+
+Now, everytime you create a `Post` and there is a file included in your request, it will automatically upload the file and save the details in `uploads` table.
+
+Files from the request should have the following request names:
+| Request name      | For                   | Rules                 |
+| -                 | -                     | -                     |
+| file              | Single file upload    | sometimes, file       |
+| files             | Multiple files upload | sometimes, file       |
+| image             | Single image upload   | sometimes, image, mime|
+| images            | Multiple images upload| sometimes, image, mime|
+| video             | Single video upload   | sometimes, mime       |
+| videos            | Multiple videos upload| sometimes, mime       |
+
+You can add more fields and their rules or override the default by defining the `uploadRules`
+in your model, where key is the request name and the value is the rule.
+
+```php
+protected function uploadRules() : array
+{
+    return [
+        // Override the `file` rules
+        'file' => ['required', 'file', 'mime:application/pdf'],
+
+        // Add new field
+        'avatar' => ['required', 'image', 'mime:png']
+    ];
+}
+```
+
+Note: File upload happens once the model `created` event fired, so make sure that the way you create the uploadable model should firing the `created` event.
+
+There are already defined relation method for specific upload type.
+```php
+// Relation for all types of uploads
+public function upload() : MorphOne { }
+
+// Relation for all types of uploads
+public function uploads() : MorphMany { }
+
+// Relation for uploads where extension is in the accepted image mimes
+public function image() : MorphOne { }
+
+// Relation for uploads where extension is in the accepted image mimes
+public function images() : MorphMany { }
+
+// Relation for uploads where extension is in the accepted video mimes
+public function video() : MorphOne { }
+
+// Relation for uploads where extension is in the accepted video mimes
+public function videos() : MorphMany { }
+
+// Relation for uploads where extension is NOT image nor video mimes
+public function file() : MorphOne { }
+
+// Relation for uploads where extension is NOT image nor video mimes
+public function files() : MorphMany { }
+```
+
+If you wish to do something on the file before uploading it, you can define the `beforeUpload` method in your model which receives the `UploadedFile` and the current model instance.
+```php
+public function beforeUpload(UploadedFile $file, Model $model) : void
+{
+
+}
+```
+
+You can also define `afterUpload` which runs after the file is uploaded but before the file details is saved in the database.
+This is useful if you have additional fields in `uploads` table that is not part of the default fields.
+```php
+public function afterUpload(Upload $upload, UploadedFile $file, Model $model, ?string $path) : void
+{
+
+}
 ```
 
 ## Testing
@@ -61,23 +147,6 @@ echo $uploadable->echoPhrase('Hello, NadLambino!');
 ```bash
 composer test
 ```
-
-## Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [Ronald Lambino](https://github.com/nadlambino)
-- [All Contributors](../../contributors)
 
 ## License
 
