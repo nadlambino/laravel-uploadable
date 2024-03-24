@@ -10,12 +10,12 @@ class Uploadable implements UploadableContract
 {
     private string $basePath;
 
-    private UploadableConfig $config;
+    private string $environment;
 
     public function __construct(private readonly Filesystem $storage)
     {
-        $this->config = app(UploadableConfig::class);
-        $this->basePath = trim($this->config->path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        $this->environment = config('app.env');
+        $this->basePath = trim(config("uploadable.disks.$this->environment.directory"), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 
     public function upload(UploadedFile $file, ?string $path = null, ?string $name = null) : ?string
@@ -34,14 +34,15 @@ class Uploadable implements UploadableContract
     public function url(string $file) : ?string
     {
         $url = $this->storage->url(trim($file, DIRECTORY_SEPARATOR));
+        $host = config("uploadable.disks.$this->environment.host");
 
-        if (! isset($this->config->host)) {
+        if (! isset($host)) {
             return $url;
         }
 
         $path = parse_url($url, PHP_URL_PATH);
 
-        return $this->config->host . $path;
+        return $host . $path;
     }
 
     public function temporaryUrl(string $file, int $expiration = 60, array $options = []) : ?string
