@@ -1,6 +1,6 @@
 {
     "name": "nadlambino/uploadable",
-    "description": "A simple implementation for uploading files in Laravel.",
+    "description": "An efficient Laravel package for handling file uploads automatically.",
     "keywords": [
         "NadLambino",
         "laravel",
