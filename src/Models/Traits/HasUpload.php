@@ -18,22 +18,133 @@ trait HasUpload
         static::observe(UploadableObserver::class);
     }
 
+    /**
+     * Returns the upload relation of all types.
+     *
+     * @return MorphOne
+     */
     public function upload() : MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable');
     }
 
+    /**
+     * Returns the upload relation of all types.
+     *
+     * @return MorphMany
+     */
     public function uploads() : MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable');
     }
 
+    /**
+     * Returns the upload relation of image type.
+     *
+     * @return void
+     */
+    public function image()
+    {
+        return $this->morphOne(Upload::class, 'uploadable')
+            ->whereIn('extension', $this->getImageMimes());
+    }
+
+    /**
+     * Returns the upload relation of image type.
+     *
+     * @return void
+     */
+    public function images()
+    {
+        return $this->morphMany(Upload::class, 'uploadable')
+            ->whereIn('extension', $this->getImageMimes());
+    }
+
+    /**
+     * Returns the upload relation of video type.
+     *
+     * @return MorphOne
+     */
+    public function video() : MorphOne
+    {
+        return $this->morphOne(Upload::class, 'uploadable')
+            ->whereIn('extension', $this->getVideoMimes());
+    }
+
+    /**
+     * Returns the upload relation of video type.
+     *
+     * @return MorphMany
+     */
+    public function videos() : MorphMany
+    {
+        return $this->morphMany(Upload::class, 'uploadable')
+            ->whereIn('extension', $this->getVideoMimes());
+    }
+
+    /**
+     * Returns the upload relation of type that is not image or video.
+     *
+     * @return MorphOne
+     */
+    public function file() : MorphOne
+    {
+        return $this->morphOne(Upload::class, 'uploadable')
+            ->whereNotIn('extension', array_merge($this->getImageMimes(), $this->getVideoMimes()));
+    }
+
+    /**
+     * Returns the upload relation of type that is not image or video.
+     *
+     * @return MorphMany
+     */
+    public function files() : MorphMany
+    {
+        return $this->morphMany(Upload::class, 'uploadable')
+            ->whereNotIn('extension', array_merge($this->getImageMimes(), $this->getVideoMimes()));
+    }
+
+    /**
+     * Add or modify rules wihthout having to rewrite the entire rule.
+     *
+     * @return array<string, string|array>
+     */
+    protected function uploadRules() : array
+    {
+        return [];
+    }
+
     protected function getUploadRules() : array
     {
         return [
-            'file' => ['sometimes', 'file'],
-            'image' => ['sometimes', 'image'],
+            'file'      => ['sometimes', 'file'],
+            'files.*'   => ['sometimes', 'file'],
+            'image'     => ['sometimes', 'image', $imageMimesRule = $this->getImageMimesRule()],
+            'images.*'  => ['sometimes', 'image', $imageMimesRule],
+            'video'     => ['sometimes', $videoMimesRule = $this->getVideoMimesRule()],
+            'videos.*'  => ['sometimes', $videoMimesRule],
+            ...$this->uploadRules()
         ];
+    }
+
+    protected function getImageMimesRule() : string
+    {
+        return 'mimes:' . implode(',', $this->getImageMimes());
+    }
+
+    protected function getVideoMimesRule() : string
+    {
+        return 'mimes:' . implode(',', $this->getVideoMimes());
+    }
+
+    protected function getImageMimes() : array
+    {
+        return ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'avif', 'apng', 'ico', 'bmp', 'tiff'];
+    }
+
+    protected function getVideoMimes() : array
+    {
+        return ['mp4', 'mkv', 'webm', 'ogv', 'avi', 'mov', 'mpg', 'mpeg', 'wmv', 'flv', '3gp', '3g2', 'm4v'];
     }
 
     public function getUploads() : array

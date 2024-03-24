@@ -30,20 +30,12 @@ readonly class UploadableObserver
                 $files = $model->getUploads();
 
                 foreach ($files as $file) {
-                    $path = $model->getTable() . DIRECTORY_SEPARATOR . $model->id;
-                    $hashName = $file->hashName();
-                    $fullPath = $this->uploadable->upload($file, $path, $hashName);
+                    if (is_array($file)) {
+                        $this->uploads($file, $model);
+                        continue;
+                    }
 
-                    $upload = new Upload();
-                    $upload->path = $fullPath;
-                    $upload->name = $hashName;
-                    $upload->original_name = $file->getClientOriginalName();
-                    $upload->extension = $file->getClientOriginalExtension();
-                    $upload->size = $file->getSize();
-                    $upload->type = $file->getMimeType();
-
-                    $upload->uploadable()->associate($model);
-                    $upload->save();
+                    $this->upload($file, $model);
                 }
             }
 
@@ -59,6 +51,35 @@ readonly class UploadableObserver
 
             throw $exception;
         }
+    }
+
+    private function uploads(array $files, Model $model)
+    {
+        foreach ($files as $file) {
+            if (is_array($file)) {
+                $this->uploads($file, $model);
+            } else {
+                $this->upload($file, $model);
+            }
+        }
+    }
+
+    private function upload(UploadedFile $file, Model $model) : void
+    {
+        $path = $model->getTable() . DIRECTORY_SEPARATOR . $model->id;
+        $hashName = $file->hashName();
+        $fullPath = $this->uploadable->upload($file, $path, $hashName);
+
+        $upload = new Upload();
+        $upload->path = $fullPath;
+        $upload->name = $hashName;
+        $upload->original_name = $file->getClientOriginalName();
+        $upload->extension = strtolower($file->getClientOriginalExtension());
+        $upload->size = $file->getSize();
+        $upload->type = $file->getMimeType();
+
+        $upload->uploadable()->associate($model);
+        $upload->save();
     }
 
     public function deleted($model) : void
