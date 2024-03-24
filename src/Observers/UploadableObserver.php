@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Uploadable;
 
 readonly class UploadableObserver
@@ -25,19 +26,25 @@ readonly class UploadableObserver
             DB::beginTransaction();
 
             /** @var UploadedFile $file */
-            if (method_exists($model, 'getUploadable') && ($file = $model->getUploadable())) {
-                $path = $model->getTable() . DIRECTORY_SEPARATOR . $model->id;
-                $name = $file->getClientOriginalName();
-                $fullPath = $this->uploadable->upload($file, $path, $name);
+            if (method_exists($model, 'getUploads')) {
+                $files = $model->getUploads();
 
-                $model->uploadable()->create([
-                    'path' => $this->uploadable->upload($file, $path, $name),
-                    'name' => $name,
-                    'original_name' => $name,
-                    'extension' => $file->getClientOriginalExtension(),
-                    'size' => $file->getSize(),
-                    'type' => $file->getMimeType(),
-                ]);
+                foreach ($files as $file) {
+                    $path = $model->getTable() . DIRECTORY_SEPARATOR . $model->id;
+                    $hashName = $file->hashName();
+                    $fullPath = $this->uploadable->upload($file, $path, $hashName);
+
+                    $upload = new Upload();
+                    $upload->path = $fullPath;
+                    $upload->name = $hashName;
+                    $upload->original_name = $file->getClientOriginalName();
+                    $upload->extension = $file->getClientOriginalExtension();
+                    $upload->size = $file->getSize();
+                    $upload->type = $file->getMimeType();
+
+                    $upload->uploadable()->associate($model);
+                    $upload->save();
+                }
             }
 
             DB::commit();
@@ -59,8 +66,8 @@ readonly class UploadableObserver
         try {
             DB::beginTransaction();
 
-            if (($path = $model->uploadable?->path) && $this->uploadable->delete($path)) {
-                $model->uploadable?->delete();
+            if (($path = $model->upload?->path) && $this->uploadable->delete($path)) {
+                $model->upload?->delete();
 
                 DB::commit();
             }
