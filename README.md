@@ -137,7 +137,7 @@ This is useful if you have additional fields in `uploads` table that you want to
 ```php
 public function afterUpload(Upload $upload, UploadedFile $file, Model $model, ?string $path) : void
 {
-    $upload->additiona_field = "some value";
+    $upload->additional_field = "some value";
 }
 ```
 
