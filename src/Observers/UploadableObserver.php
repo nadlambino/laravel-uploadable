@@ -2,6 +2,7 @@
 
 namespace NadLambino\Uploadable\Observers;
 
+use Closure;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -87,10 +88,22 @@ readonly class UploadableObserver
         // After uploading the file and before saving, we will run the `afterUpload` method
         // to do whatever the uploadable wants to do with the Upload model, UploadedFile file,
         // Uploadable Model, and the full path to the file.
-        $model->afterUpload($upload, $file, $model, $fullpath);
+        $this->afterUpload($upload, $file, $model, $fullpath);
 
         $upload->uploadable()->associate($model);
         $upload->save();
+    }
+
+    private function afterUpload(Upload $upload, UploadedFile $file, Model $model, string $fullpath) : void
+    {
+        $class = get_class($model);
+
+        if ($class::$afterUploadCallback instanceof Closure) {
+            $callback = $class::$afterUploadCallback;
+            $callback($upload, $file, $model, $fullpath);
+        } else {
+            $model->afterUpload($upload, $file, $model, $fullpath);
+        }
     }
 
     /**

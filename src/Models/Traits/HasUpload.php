@@ -2,6 +2,7 @@
 
 namespace NadLambino\Uploadable\Models\Traits;
 
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -15,6 +16,8 @@ use NadLambino\Uploadable\Observers\UploadableObserver;
  */
 trait HasUpload
 {
+    public static Closure|null $afterUploadCallback = null;
+
     public static function bootHasUpload()
     {
         static::observe(UploadableObserver::class);
@@ -216,5 +219,10 @@ trait HasUpload
     public function afterUpload(Upload $upload, UploadedFile $file, Model $model, ?string $path) : void
     {
 
+    }
+
+    public static function afterUploadUsing(Closure $callback)
+    {
+        static::$afterUploadCallback = $callback;
     }
 }
