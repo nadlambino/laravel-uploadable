@@ -48,7 +48,7 @@ return [
 ];
 ```
 
->**NOTE:** If you are running your application on another server like `development` or `staging`, you should add the disk mapping here.
+>**NOTE:** If you are running your application on another environment like `development` or `staging`, you should add the disk mapping here.
 
 ## Usage
 
@@ -59,7 +59,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Models\Traits\HasUpload;
 
 class Post extends Model
@@ -74,14 +73,14 @@ Files from the request should have the following request names:
 | Request name      | For                   | Rules                 |
 | -                 | -                     | -                     |
 | file              | Single file upload    | sometimes, file       |
-| files             | Multiple files upload | sometimes, file       |
+| files             | Multiple file uploads | sometimes, file       |
 | image             | Single image upload   | sometimes, image, mime|
-| images            | Multiple images upload| sometimes, image, mime|
+| images            | Multiple image uploads| sometimes, image, mime|
 | video             | Single video upload   | sometimes, mime       |
-| videos            | Multiple videos upload| sometimes, mime       |
+| videos            | Multiple video uploads| sometimes, mime       |
 
-You can add more fields and their rules or override the default by defining the `uploadRules`
-in your model, where key is the request name and the value is the rule.
+You can add more fields and their rules or override the default ones by defining the `uploadRules`
+method in your model, where the key is the request name and the value is their rules.
 
 ```php
 protected function uploadRules() : array
@@ -96,9 +95,9 @@ protected function uploadRules() : array
 }
 ```
 
->**NOTE:** File upload happens once the model `created` event fired, so make sure that the way you create the uploadable model should firing the `created` event.
+>**NOTE:** File upload happens once the model `created` event was fired, so make sure that the way you create the uploadable model is firing this event.
 
-There are already defined relation method for specific upload type.
+There are already pre-defined relation method for specific upload type.
 ```php
 // Relation for all types of uploads
 public function upload() : MorphOne { }
@@ -133,12 +132,12 @@ public function beforeUpload(UploadedFile $file, Model $model) : void
 }
 ```
 
-You can also define `afterUpload` which runs after the file is uploaded but before the file details is saved in the database.
-This is useful if you have additional fields in `uploads` table that is not part of the default fields.
+You can also define the `afterUpload` method which runs after the file is uploaded but before the file details is saved in the database.
+This is useful if you have additional fields in `uploads` table that you want to have a value before saving.
 ```php
 public function afterUpload(Upload $upload, UploadedFile $file, Model $model, ?string $path) : void
 {
-
+    $upload->additiona_field = "some value";
 }
 ```
 
