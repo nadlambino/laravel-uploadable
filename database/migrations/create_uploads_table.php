@@ -8,12 +8,16 @@ return new class extends Migration
 {
     public function up()
     {
+        if (Schema::hasTable('uploads')) {
+            return;
+        }
+
         Schema::create('uploads', function (Blueprint $table) {
             $table->id();
             $table->string('uploadable_type');
             $table->unsignedBigInteger('uploadable_id');
-            $table->string('name');
-            $table->string('original_name');
+            $table->text('name');
+            $table->text('original_name');
             $table->string('type');
             $table->string('path');
             $table->string('extension');
