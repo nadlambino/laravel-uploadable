@@ -27,4 +27,13 @@ return [
      * Force delete all the uploads data when the uploadable model is deleted.
      */
     'force_delete_uploads' => true,
+
+    /**
+     * The queue to use when uploading files.
+     * If null, the upload will not be queued.
+     * Note: The `afterUploadUsing` method won't be called when the upload is queued.
+     * The `afterUpload` method will still be called but the request object will be a new request object
+     * that doesn't include the file uploads. This is because UploadedFile objects are not serializable.
+     */
+    'upload_on_queue_using' => null,
 ];

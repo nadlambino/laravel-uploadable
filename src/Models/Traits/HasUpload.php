@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Observers\UploadableObserver;
@@ -195,12 +196,16 @@ trait HasUpload
     /**
      * Runs after the file has been uploaded and before the upload data are saved in the database.
      * This method is useful for modifying or storing additional details in uploads or uploadable's table.
+     * Note: The request object is a new request object that doesn't have the uploaded files.
+     * This is because UploadedFile objects are not serializable.
      *
-     * @param Upload $upload
-     * @param Model $model
+     * @param Upload  $upload
+     * @param Model   $model
+     * @param Request $request
+     *
      * @return void
      */
-    public function afterUpload(Upload $upload, Model $model) : void
+    public function afterUpload(Upload $upload, Model $model, Request $request) : void
     {
 
     }
@@ -210,6 +215,7 @@ trait HasUpload
      * The callback receives the Upload model and Uploadable Model.
      * This allows you to override the `afterUpload` method in case you want to do something different.
      * Note: Make sure to call this method before saving the uploadable model.
+     * Note: This won't be called when the upload is queued.
      *
      * @param Closure $callback
      *

@@ -2,19 +2,21 @@
 
 namespace NadLambino\Uploadable\Observers;
 
-use Closure;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use NadLambino\Uploadable\Models\Upload;
+use NadLambino\Uploadable\Jobs\ProcessUploadJob;
+use NadLambino\Uploadable\Actions\UploadAction;
 use NadLambino\Uploadable\Uploadable;
 
 class UploadableObserver
 {
     private array $uploadedFullpaths = [];
 
-    public function __construct(private readonly Uploadable $uploadable)
+    public function __construct(private readonly Uploadable $uploadable, private readonly UploadAction $uploadAction)
     {
     }
 
@@ -26,15 +28,23 @@ class UploadableObserver
         try {
             DB::beginTransaction();
 
-            $files = $model->getUploads();
+            /** @var UploadedFile[] $uploads */
+            $uploads = $model->getUploads();
+            $paths = [];
+            $request = $this->createRequestCollection();
 
-            foreach ($files as $file) {
-                if (is_array($file)) {
-                    $this->uploads($file, $model);
-                    continue;
+            if (($queue = config('uploadable.upload_on_queue_using')) !== null) {
+                foreach ($uploads as $upload) {
+                    $path = $upload->store('tmp');
+
+                    $paths[] = $path;
                 }
 
-                $this->upload($file, $model);
+
+                ProcessUploadJob::dispatch($paths, $model, $request)
+                    ->onQueue($queue);
+            } else {
+                $this->uploadAction->handle($uploads, $model, $request);
             }
 
             DB::commit();
@@ -51,51 +61,30 @@ class UploadableObserver
         }
     }
 
-    private function uploads(array $files, Model $model) : void
+    private function createRequestCollection() : Collection
     {
-        foreach ($files as $file) {
-            if (is_array($file)) {
-                $this->uploads($file, $model);
-            } else {
-                $this->upload($file, $model);
-            }
+        /** @var Request $request */
+        $request = request();
+
+        foreach ($request->files as $key => $file) {
+            $request->files->remove($key);
         }
+
+        $this->removeFilesFromRequest($request->all(), $request);
+
+        return collect($request->request->all());
     }
 
-    private function upload(UploadedFile $file, Model $model) : void
+    private function removeFilesFromRequest(array $requestArray, Request $requestObject) : void
     {
-        $path = $model->getUploadPath($file, $model);
-        $filename = $model->getUploadFilename($file, $model);
+        foreach ($requestArray as $key => $value) {
+            if ($value instanceof UploadedFile) {
+                $requestObject->request->remove($key);
+            }
 
-        $fullpath = $this->uploadable->upload($file, $path, $filename);
-        $this->uploadedFullpaths[] = $fullpath;
-
-        $upload = new Upload();
-        $upload->path = $fullpath;
-        $upload->name = $filename;
-        $upload->original_name = $file->getClientOriginalName();
-        $upload->extension = strtolower($file->getClientOriginalExtension());
-        $upload->size = $file->getSize();
-        $upload->type = $file->getMimeType();
-
-        // After uploading the file and before saving the uploads data, we will run the `afterUpload` method
-        // to do whatever you want to do with the Upload model and Uploadable Model.
-        $this->afterUpload($upload, $model);
-
-        $upload->uploadable()->associate($model);
-        $upload->save();
-        $model->save();
-    }
-
-    private function afterUpload(Upload $upload, Model $model) : void
-    {
-        $class = get_class($model);
-
-        if ($class::$afterUploadCallback instanceof Closure) {
-            $callback = $class::$afterUploadCallback;
-            $callback($upload, $model);
-        } else {
-            $model->afterUpload($upload, $model);
+            if (is_array($value)) {
+                $this->removeFilesFromRequest($value, $requestObject);
+            }
         }
     }
 
