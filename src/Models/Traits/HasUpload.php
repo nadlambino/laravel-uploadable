@@ -18,7 +18,7 @@ trait HasUpload
 {
     public static Closure|null $afterUploadCallback = null;
 
-    public static function bootHasUpload()
+    public static function bootHasUpload() : void
     {
         static::observe(UploadableObserver::class);
     }
@@ -46,9 +46,9 @@ trait HasUpload
     /**
      * Returns the upload relation of image type.
      *
-     * @return void
+     * @return MorphOne
      */
-    public function image()
+    public function image(): MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable')
             ->whereIn('extension', $this->getImageMimes());
@@ -57,9 +57,9 @@ trait HasUpload
     /**
      * Returns the upload relation of image type.
      *
-     * @return void
+     * @return MorphMany
      */
-    public function images()
+    public function images(): MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable')
             ->whereIn('extension', $this->getImageMimes());
@@ -68,7 +68,6 @@ trait HasUpload
     /**
      * Returns the upload relation of video type.
      *
-     * @return MorphOne
      */
     public function video() : MorphOne
     {
@@ -110,7 +109,7 @@ trait HasUpload
     }
 
     /**
-     * Add or modify rules wihthout having to rewrite the entire rule.
+     * Add or modify rules without having to rewrite the entire rule.
      *
      * @return array<string, string|array>
      */
@@ -194,34 +193,29 @@ trait HasUpload
     }
 
     /**
-     * Runs before the file has been uploaded and before the upload details are saved in the database.
-     * This method is useful for modifying or storing additional details in uploads table.
+     * Runs after the file has been uploaded and before the upload data are saved in the database.
+     * This method is useful for modifying or storing additional details in uploads or uploadable's table.
      *
-     * @param UploadedFile $file
+     * @param Upload $upload
      * @param Model $model
      * @return void
      */
-    public function beforeUpload(UploadedFile $file, Model $model) : void
+    public function afterUpload(Upload $upload, Model $model) : void
     {
 
     }
 
     /**
-     * Runs after the file has been uploaded and before the upload details are saved in the database.
-     * This method is useful for modifying or storing additional details in uploads table.
+     * Allows you to run a custom callback after the file has been uploaded.
+     * The callback receives the Upload model and Uploadable Model.
+     * This allows you to override the `afterUpload` method in case you want to do something different.
+     * Note: Make sure to call this method before saving the uploadable model.
      *
-     * @param Upload $upload
-     * @param UploadedFile $file
-     * @param Model $model
-     * @param string|null $path
+     * @param Closure $callback
+     *
      * @return void
      */
-    public function afterUpload(Upload $upload, UploadedFile $file, Model $model, ?string $path) : void
-    {
-
-    }
-
-    public static function afterUploadUsing(Closure $callback)
+    public static function afterUploadUsing(Closure $callback) : void
     {
         static::$afterUploadCallback = $callback;
     }
