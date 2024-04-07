@@ -34,12 +34,7 @@ class UploadableObserver
             $request = $this->createRequestCollection();
 
             if (($queue = config('uploadable.upload_on_queue_using')) !== null) {
-                foreach ($uploads as $upload) {
-                    $path = $upload->store('tmp');
-
-                    $paths[] = $path;
-                }
-
+                $paths = $this->uploadTempFiles($uploads);
 
                 ProcessUploadJob::dispatch($paths, $model, $request)
                     ->onQueue($queue);
@@ -59,6 +54,24 @@ class UploadableObserver
 
             throw $exception;
         }
+    }
+
+    private function uploadTempFiles(array $files) : array
+    {
+        $paths = [];
+
+        foreach ($files as $file) {
+            if (is_array($file)) {
+                $paths = array_merge($paths, $this->uploadTempFiles($file));
+                continue;
+            }
+
+            $path = $file->store('tmp');
+
+            $paths[] = $path;
+        }
+
+        return $paths;
     }
 
     private function createRequestCollection() : Collection
