@@ -10,8 +10,7 @@ return new class extends Migration
     {
         Schema::create('uploads', function (Blueprint $table) {
             $table->id();
-            $table->string('uploadable_type');
-            $table->unsignedBigInteger('uploadable_id');
+            $table->morphs('uploadable');
             $table->text('name');
             $table->text('original_name');
             $table->string('type');
