@@ -28,27 +28,7 @@ You can publish the config file with:
 php artisan vendor:publish --tag="uploadable-config"
 ```
 
-This is the contents of the published config file:
-
-```php
-return [
-    'disks' => [
-        
-        'local' => [
-            'disk' => 'public',
-            'directory' => 'uploads',
-            'host' => request()->getSchemeAndHttpHost(),
-        ],
-
-        'production' => [
-            'disk' => 's3',
-            'directory' => 'uploads',
-        ],
-    ],
-];
-```
-
->**NOTE:** If you are running your application on another environment like `development` or `staging`, you should add the disk mapping here.
+>**NOTE:** If you are running your application on another environment like `development` or `staging`, you should add the disk mapping in the config.
 
 ## Usage
 
@@ -70,6 +50,7 @@ class Post extends Model
 Now, everytime you create a `Post` and there is a file included in your request, it will automatically upload the file and save the details in `uploads` table.
 
 Files from the request should have the following request names:
+
 | Request name      | For                   | Rules                 |
 | -                 | -                     | -                     |
 | file              | Single file upload    | sometimes, file       |
@@ -86,11 +67,8 @@ method in your model, where the key is the request name and the value is their r
 protected function uploadRules() : array
 {
     return [
-        // Override the `file` rules
-        'file' => ['required', 'file', 'mime:application/pdf'],
-
-        // Add new field
-        'avatar' => ['required', 'image', 'mime:png']
+        'file' => ['required', 'file', 'mime:application/pdf'], // Override the `file` rules
+        'avatar' => ['required', 'image', 'mime:png'] // Add new field
     ];
 }
 ```
@@ -105,40 +83,51 @@ public function upload() : MorphOne { }
 // Relation for all types of uploads
 public function uploads() : MorphMany { }
 
-// Relation for uploads where extension is in the accepted image mimes
+// Relation for uploads where extension or type is in the accepted image mimes
 public function image() : MorphOne { }
 
-// Relation for uploads where extension is in the accepted image mimes
+// Relation for uploads where extension or type is in the accepted image mimes
 public function images() : MorphMany { }
 
-// Relation for uploads where extension is in the accepted video mimes
+// Relation for uploads where extension or type is in the accepted video mimes
 public function video() : MorphOne { }
 
-// Relation for uploads where extension is in the accepted video mimes
+// Relation for uploads where extension or type is in the accepted video mimes
 public function videos() : MorphMany { }
 
-// Relation for uploads where extension is NOT image nor video mimes
-public function file() : MorphOne { }
+// Relation for uploads where extension or type is in the accepted document mimes
+public function document() : MorphOne { }
 
-// Relation for uploads where extension is NOT image nor video mimes
-public function files() : MorphMany { }
+// Relation for uploads where extension or type is in the accepted document mimes
+public function documents() : MorphMany { }
 ```
 
-If you wish to do something on the file before uploading it, you can define the `beforeUpload` method in your model which receives the `UploadedFile` and the current model instance.
-```php
-public function beforeUpload(UploadedFile $file, Model $model) : void
-{
-
-}
-```
-
-You can also define the `afterUpload` method which runs after the file is uploaded but before the file details is saved in the database.
+You define an `afterUpload` method which runs after the file is uploaded and before the file details is saved in the database.
 This is useful if you have additional fields in `uploads` table that you want to have a value before saving.
 ```php
-public function afterUpload(Upload $upload, UploadedFile $file, Model $model, ?string $path) : void
+public function afterUpload(Upload $upload, Model $model, Request $request) : void
 {
     $upload->additional_field = "some value";
 }
+```
+
+Alternatively, you can define a static method `afterUploadUsing` method in the uploadable model then call this method before the uploadable data is saved.
+This is useful if you need to do something which could be different from what the `afterUpload` method does because it has higher precedence.
+```php
+Post::afterUploadUsing(function (Upload $upload, Post $model, Request $request) {
+    $model->additional_field = "some value";
+});
+```
+
+>**NOTE:** The request object that it receives is a new request object which doesn't contain the uploaded files. This is because UploadedFile objects are not serializable.
+
+## Queuing
+
+You can queue the file upload process by defining the queue name in the config. However, when you queue the file upload process, 
+the `afterUploadUsing` method will not be called and instead will call the `afterUpload` method. This is where the new request object that it receives comes in handy.
+
+```php
+'upload_on_queue_using' => null,
 ```
 
 ## Testing
