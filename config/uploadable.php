@@ -36,4 +36,13 @@ return [
      * that doesn't include the file uploads. This is because UploadedFile objects are not serializable.
      */
     'upload_on_queue_using' => null,
+
+    /**
+     * The mime types allowed for the uploads.
+     */
+    'mimes' => [
+        'image'     => ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg', 'webp'],
+        'video'     => ['mp4', 'avi', 'mov', 'wmv', 'flv', '3gp', 'mkv'],
+        'document'  => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt']
+    ]
 ];

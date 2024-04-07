@@ -52,7 +52,10 @@ trait HasUpload
     public function image(): MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable')
-            ->whereIn('extension', $this->getImageMimes());
+            ->where(function ($query) {
+                $query->whereIn('extension', $mimes = $this->getImageMimes())
+                    ->orWhereIn('type', $mimes);
+            });
     }
 
     /**
@@ -63,7 +66,10 @@ trait HasUpload
     public function images(): MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable')
-            ->whereIn('extension', $this->getImageMimes());
+            ->where(function ($query) {
+                $query->whereIn('extension', $mimes = $this->getImageMimes())
+                    ->orWhereIn('type', $mimes);
+            });
     }
 
     /**
@@ -73,7 +79,10 @@ trait HasUpload
     public function video() : MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable')
-            ->whereIn('extension', $this->getVideoMimes());
+            ->where(function ($query) {
+                $query->whereIn('extension', $mimes = $this->getVideoMimes())
+                    ->orWhereIn('type', $mimes);
+            });
     }
 
     /**
@@ -84,7 +93,10 @@ trait HasUpload
     public function videos() : MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable')
-            ->whereIn('extension', $this->getVideoMimes());
+            ->where(function ($query) {
+                $query->whereIn('extension', $mimes = $this->getVideoMimes())
+                    ->orWhereIn('type', $mimes);
+            });
     }
 
     /**
@@ -92,10 +104,13 @@ trait HasUpload
      *
      * @return MorphOne
      */
-    public function file() : MorphOne
+    public function document() : MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable')
-            ->whereNotIn('extension', array_merge($this->getImageMimes(), $this->getVideoMimes()));
+            ->where(function ($query) {
+                $query->whereIn('extension', $mimes = $this->getDocumentMimes())
+                    ->orWhereIn('type', $mimes);
+            });
     }
 
     /**
@@ -103,10 +118,13 @@ trait HasUpload
      *
      * @return MorphMany
      */
-    public function files() : MorphMany
+    public function documents() : MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable')
-            ->whereNotIn('extension', array_merge($this->getImageMimes(), $this->getVideoMimes()));
+            ->where(function ($query) {
+                $query->whereIn('extension', $mimes = $this->getDocumentMimes())
+                    ->orWhereIn('type', $mimes);
+            });
     }
 
     /**
@@ -132,12 +150,12 @@ trait HasUpload
     protected function getUploadRules() : array
     {
         return [
-            'file'      => ['sometimes', 'file'],
-            'files.*'   => ['sometimes', 'file'],
-            'image'     => ['sometimes', 'image', $imageMimesRule = $this->getImageMimesRule()],
-            'images.*'  => ['sometimes', 'image', $imageMimesRule],
-            'video'     => ['sometimes', $videoMimesRule = $this->getVideoMimesRule()],
-            'videos.*'  => ['sometimes', $videoMimesRule],
+            'document'      => ['sometimes', 'file', $documentMimesRule = $this->getDocumentMimesRule()],
+            'documents.*'   => ['sometimes', 'file', $documentMimesRule],
+            'image'         => ['sometimes', 'image', $imageMimesRule = $this->getImageMimesRule()],
+            'images.*'      => ['sometimes', 'image', $imageMimesRule],
+            'video'         => ['sometimes', $videoMimesRule = $this->getVideoMimesRule()],
+            'videos.*'      => ['sometimes', $videoMimesRule],
             ...$this->uploadRules()
         ];
     }
@@ -147,19 +165,28 @@ trait HasUpload
         return 'mimes:' . implode(',', $this->getImageMimes());
     }
 
+    protected function getImageMimes() : array
+    {
+        return config('uploadable.mimes.image');
+    }
+
     protected function getVideoMimesRule() : string
     {
         return 'mimes:' . implode(',', $this->getVideoMimes());
     }
 
-    protected function getImageMimes() : array
-    {
-        return ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'avif', 'apng', 'ico', 'bmp', 'tiff'];
-    }
-
     protected function getVideoMimes() : array
     {
-        return ['mp4', 'mkv', 'webm', 'ogv', 'avi', 'mov', 'mpg', 'mpeg', 'wmv', 'flv', '3gp', '3g2', 'm4v'];
+        return config('uploadable.mimes.video');
+    }
+    protected function getDocumentMimesRule() : string
+    {
+        return 'mimes:' . implode(',', $this->getDocumentMimes());
+    }
+
+    protected function getDocumentMimes() : array
+    {
+        return config('uploadable.mimes.document');
     }
 
     public function getUploads() : array
