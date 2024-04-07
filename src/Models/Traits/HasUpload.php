@@ -119,6 +119,16 @@ trait HasUpload
         return [];
     }
 
+    /**
+     * Add or modify rules' messages.
+     *
+     * @return array<string, string>
+     */
+    protected function uploadRulesMessages() : array
+    {
+        return [];
+    }
+
     protected function getUploadRules() : array
     {
         return [
@@ -157,7 +167,7 @@ trait HasUpload
         $rules = $this->getUploadRules();
         $validatable = array_filter($rules, fn ($value) => ! empty($value));
 
-        request()->validate($validatable);
+        request()->validate($validatable, $this->uploadRulesMessages());
 
         $fields = collect($rules)
             ->keys()
