@@ -10,7 +10,7 @@ return [
         'local' => [
             'disk' => 'public',
             'directory' => 'uploads',
-            'host' => request()->getSchemeAndHttpHost(),
+            'host' => env('APP_URL', 'http://localhost'),
         ],
         'production' => [
             'disk' => 's3',

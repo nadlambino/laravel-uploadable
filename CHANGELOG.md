@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Although we try to follow the semantic versioning, breaking changes until v1.0.0 may release in minor versions.
 This is to avoid jumping to v1.0.0 too soon while the package is still in development.
 
+## [v0.3.1] - 2024-04-08
+
+### Fixed
+- Fix handling of multiple files from a single request field when uploading on queue
+- Fix the root temporary directory for queued uploads
+- Fix the host for local disk uploads
+
 ## [v0.3.0] - 2024-04-08
 
 ### Breaking
