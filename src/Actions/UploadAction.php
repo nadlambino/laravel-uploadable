@@ -50,7 +50,8 @@ class UploadAction
         $filePath = $isFilePath ? $file : null;
 
         if ($isFilePath) {
-            $root = config('filesystems.disks.local.root');
+            $defaultDisk = config('filesystems.default');
+            $root = config("filesystems.disks.$defaultDisk.root");
             $file = new UploadedFile($root . DIRECTORY_SEPARATOR . $filePath, basename($filePath));
         }
 
