@@ -8,15 +8,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use NadLambino\Uploadable\Jobs\ProcessUploadJob;
 use NadLambino\Uploadable\Actions\UploadAction;
 use NadLambino\Uploadable\Uploadable;
 
-class UploadableObserver
+readonly class UploadableObserver
 {
-    private array $uploadedFullpaths = [];
-
-    public function __construct(private readonly Uploadable $uploadable, private readonly UploadAction $uploadAction)
+    public function __construct(private Uploadable $uploadable, private UploadAction $uploadAction)
     {
     }
 
@@ -26,31 +25,19 @@ class UploadableObserver
     public function created(Model $model) : void
     {
         try {
-            DB::beginTransaction();
-
             /** @var UploadedFile[] $uploads */
             $uploads = $model->getUploads();
-            $paths = [];
             $request = $this->createRequestCollection();
 
             if (($queue = config('uploadable.upload_on_queue_using')) !== null) {
                 $paths = $this->uploadTempFiles($uploads);
 
-                ProcessUploadJob::dispatch($paths, $model, $request)
-                    ->onQueue($queue);
+                ProcessUploadJob::dispatch($paths, $model, $request)->onQueue($queue);
             } else {
                 $this->uploadAction->handle($uploads, $model, $request);
             }
-
-            DB::commit();
         } catch (Exception $exception) {
-            DB::rollBack();
-
-            foreach ($this->uploadedFullpaths as $fullPath) {
-                $this->uploadable->delete($fullPath);
-            }
-
-            $this->deleteQuietly($model);
+            $this->uploadAction->deleteModelQuietly($model, $exception instanceof ValidationException);
 
             throw $exception;
         }
@@ -66,7 +53,7 @@ class UploadableObserver
                 continue;
             }
 
-            $path = $file->store('tmp');
+            $path = $file->store('tmp', config('uploadable.temp_disk', 'local'));
 
             $paths[] = $path;
         }
@@ -99,20 +86,6 @@ class UploadableObserver
                 $this->removeFilesFromRequest($value, $requestObject);
             }
         }
-    }
-
-    /**
-     * Delete the model without firing any events
-     *
-     * @param Model $model
-     *
-     * @return void
-     */
-    private function deleteQuietly(Model $model) : void
-    {
-        DB::table($model->getTable())
-            ->where($model->getKeyName(), $model->{$model->getKeyName()})
-            ->delete();
     }
 
     public function deleted($model) : void
