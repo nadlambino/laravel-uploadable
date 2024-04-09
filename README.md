@@ -3,7 +3,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/nadlambino/uploadable.svg?style=flat-square)](https://packagist.org/packages/nadlambino/uploadable)
 [![Total Downloads](https://img.shields.io/packagist/dt/nadlambino/uploadable.svg?style=flat-square)](https://packagist.org/packages/nadlambino/uploadable)
 
-The <b>Uploadable</b> package is a simple implementation for automatically uploading files. It is designed to streamline and simplify the process of file upload that works on local and production environment, and storing the uploaded file details in the database.
+The <b>Uploadable</b> package handles the file upload process for your models, automatically.
 
 ## Installation
 
@@ -28,8 +28,6 @@ You can publish the config file with:
 php artisan vendor:publish --tag="uploadable-config"
 ```
 
->**NOTE:** If you are running your application on another environment like `development` or `staging`, you should add the disk mapping in the config.
-
 ## Usage
 
 Simply use the `NadLambino\Uploadable\Models\Traits\HasUpload` trait in the model that needs file uploads.
@@ -37,43 +35,57 @@ Simply use the `NadLambino\Uploadable\Models\Traits\HasUpload` trait in the mode
 ```php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use NadLambino\Uploadable\Models\Traits\HasUpload;
 
 class Post extends Model
 {
-    use HasFactory, HasUpload;
+    use HasUpload;
 }
 ```
 
-Now, everytime you create a `Post` and there is a file included in your request, it will automatically upload the file and save the details in `uploads` table.
+Now, everytime you create a `Post` and there is a file included in your request, 
+it will automatically upload the file and save the details in `uploads` table.
 
 Files from the request should have the following request names:
 
-| Request name      | For                   | Rules                 |
-| -                 | -                     | -                     |
-| file              | Single file upload    | sometimes, file       |
-| files             | Multiple file uploads | sometimes, file       |
-| image             | Single image upload   | sometimes, image, mime|
-| images            | Multiple image uploads| sometimes, image, mime|
-| video             | Single video upload   | sometimes, mime       |
-| videos            | Multiple video uploads| sometimes, mime       |
+| Request name | For                       | Rules                  |
+|--------------|---------------------------|------------------------|
+| document     | Single document upload    | sometimes, file, mime  |
+| documents    | Multiple document uploads | sometimes, file, mime  |
+| image        | Single image upload       | sometimes, image, mime |
+| images       | Multiple image uploads    | sometimes, image, mime |
+| video        | Single video upload       | sometimes, mime        |
+| videos       | Multiple video uploads    | sometimes, mime        |
 
 You can add more fields and their rules or override the default ones by defining the `uploadRules`
-method in your model, where the key is the request name and the value is their rules.
-
+method in your model.
 ```php
 protected function uploadRules() : array
 {
     return [
-        'file' => ['required', 'file', 'mime:application/pdf'], // Override the `file` rules
+        'document' => ['required', 'file', 'mime:application/pdf'], // Override the `document` rules
         'avatar' => ['required', 'image', 'mime:png'] // Add new field
     ];
 }
 ```
 
->**NOTE:** File upload happens once the model `created` event was fired, so make sure that the way you create the uploadable model is firing this event.
+To add or override the rules messages, you can define the `uploadRulesMessages` method in your model.
+```php
+public function uploadRulesMessages() : array
+{
+    return [
+        'document.required' => 'The file is required.',
+        'document.mime' => 'The file must be a PDF file.',
+        'avatar.required' => 'The avatar is required.',
+        'avatar.mime' => 'The avatar must be a PNG file.'
+    ];
+}
+```
+
+>**NOTE:** 
+> File upload happens once the model `created` event was fired, 
+> so make sure that the way you create the uploadable model should be firing this event.
 
 There are already pre-defined relation method for specific upload type.
 ```php
@@ -102,8 +114,9 @@ public function document() : MorphOne { }
 public function documents() : MorphMany { }
 ```
 
-You define an `afterUpload` method which runs after the file is uploaded and before the file details is saved in the database.
-This is useful if you have additional fields in `uploads` table that you want to have a value before saving.
+You can define an `afterUpload` method which runs after the file is uploaded and before the file details is saved in the database.
+This is useful if you have additional fields in `uploads` table that you want to have a value before saving, or you want to fire an
+event to notify the user that the upload was successful.
 ```php
 public function afterUpload(Upload $upload, Model $model, Request $request) : void
 {
@@ -111,20 +124,22 @@ public function afterUpload(Upload $upload, Model $model, Request $request) : vo
 }
 ```
 
-Alternatively, you can define a static method `afterUploadUsing` method in the uploadable model then call this method before the uploadable data is saved.
-This is useful if you need to do something which could be different from what the `afterUpload` method does because it has higher precedence.
+Alternatively, you can statically call the `afterUploadUsing` method in the uploadable model then call this method before the uploadable data is saved.
 ```php
-Post::afterUploadUsing(function (Upload $upload, Post $model, Request $request) {
+Post::afterUploadUsing(function (Upload $upload, Post $model) {
     $model->additional_field = "some value";
 });
 ```
 
->**NOTE:** The request object that it receives is a new request object which doesn't contain the uploaded files. This is because UploadedFile objects are not serializable.
+>**NOTE:**
+> The request object that the `afterUpload` receives is a new request object that doesn't contain the uploaded files.
+> This is because when queueing the upload process, UploadedFile objects are not serializable.
+> The `afterUploadUsing` method will not be called when you queue the file upload process.
 
 ## Queuing
 
 You can queue the file upload process by defining the queue name in the config. However, when you queue the file upload process, 
-the `afterUploadUsing` method will not be called and instead will call the `afterUpload` method. This is where the new request object that it receives comes in handy.
+the `afterUploadUsing` method will not be called and instead will call the `afterUpload` method.
 
 ```php
 'upload_on_queue_using' => null,
