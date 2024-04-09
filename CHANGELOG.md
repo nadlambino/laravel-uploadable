@@ -14,12 +14,10 @@ This is to avoid jumping to v1.0.0 too soon while the package is still in develo
 - Use filesystems.php configuration to determine the disk
 
 ### Added
-- Uploadable model can now add or replace file uploads
-- Upload process can now be called manually
-
-### Added
 - Configurable deletion of uploadable model (both queued and non-queued uploads)
 - Configurable temporary disk for queued uploads
+- Uploadable model can now add or replace file uploads
+- Upload process can now be called manually
 
 ## [v0.3.1] - 2024-04-08
 
