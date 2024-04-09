@@ -12,6 +12,10 @@ return [
             'directory' => 'uploads',
             'host' => env('APP_URL', 'http://localhost'),
         ],
+        'development' => [
+            'disk' => 's3',
+            'directory' => 'uploads',
+        ],
         'production' => [
             'disk' => 's3',
             'directory' => 'uploads',
