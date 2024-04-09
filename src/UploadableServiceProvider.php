@@ -11,8 +11,7 @@ class UploadableServiceProvider extends PackageServiceProvider
 {
     public function boot() : void
     {
-        parent::boot()
-            ->bindService();
+        parent::boot()->bindService();
     }
 
     public function configurePackage(Package $package): void
@@ -31,16 +30,17 @@ class UploadableServiceProvider extends PackageServiceProvider
 
     protected function bindService(): static
     {
-        $env = config('app.env', 'local');
-        $disk = config("uploadable.disks.$env.disk");
+        $default = config('filesystems.default', 'public');
 
-        $this->app->bind(\NadLambino\Uploadable\Contracts\Uploadable::class, function () use ($disk) {
-            return new Uploadable(Storage::disk($disk));
-        });
+        $this->app->bind(
+            \NadLambino\Uploadable\Contracts\Uploadable::class,
+            fn () => new Uploadable(Storage::disk($default))
+        );
 
-        $this->app->bind(Uploadable::class, function () use ($disk) {
-            return new Uploadable(Storage::disk($disk));
-        });
+        $this->app->bind(
+            Uploadable::class,
+            fn () => new Uploadable(Storage::disk($default))
+        );
 
         return $this;
     }

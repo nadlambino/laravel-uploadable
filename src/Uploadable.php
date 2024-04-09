@@ -2,25 +2,19 @@
 
 namespace NadLambino\Uploadable;
 
+use Exception;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Contracts\Uploadable as UploadableContract;
 
 class Uploadable implements UploadableContract
 {
-    private string $basePath;
-
-    private string $environment;
-
     public function __construct(private readonly Filesystem $storage)
     {
-        $this->environment = config('app.env');
-        $this->basePath = trim(config("uploadable.disks.$this->environment.directory"), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 
     public function upload(UploadedFile $file, ?string $path = null, ?string $name = null) : ?string
     {
-        $path = $path ? $this->basePath . trim($path, DIRECTORY_SEPARATOR) : $this->basePath;
         $name = $name ?? $file->hashName();
 
         return $this->storage->putFileAs($path, $file, $name);
@@ -34,7 +28,8 @@ class Uploadable implements UploadableContract
     public function url(string $file) : ?string
     {
         $url = $this->storage->url(trim($file, DIRECTORY_SEPARATOR));
-        $host = config("uploadable.disks.$this->environment.host");
+        $disk = config('filesystem.default', 'local');
+        $host = config("filesystem.disks.$disk.url");
 
         if (! isset($host)) {
             return $url;
@@ -49,7 +44,7 @@ class Uploadable implements UploadableContract
     {
         try {
             return $this->storage->temporaryUrl($file, now()->addMinutes($expiration), $options);
-        } catch (\Exception) {
+        } catch (Exception) {
             return $this->url($file);
         }
     }
