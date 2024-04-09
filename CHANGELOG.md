@@ -8,10 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Although we try to follow the semantic versioning, breaking changes until v1.0.0 may release in minor versions.
 This is to avoid jumping to v1.0.0 too soon while the package is still in development.
 
-## [v0.3.2] - 2024-04-09
+## [v0.4.1] - 2024-04-09
 
 ### Changed
 - Use filesystems.php configuration to determine the disk
+
+### Added
+- Uploadable model can now add or replace file uploads
+- Upload process can now be called manually
 
 ### Added
 - Configurable deletion of uploadable model (both queued and non-queued uploads)

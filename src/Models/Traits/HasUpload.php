@@ -19,9 +19,12 @@ trait HasUpload
 {
     public static Closure|null $afterUploadCallback = null;
 
+    public static bool $deletePreviousUploads = false;
+
     public static function bootHasUpload() : void
     {
         static::observe(UploadableObserver::class);
+        static::deletePreviousUploads(config('uploadable.delete_previous_uploads', false));
     }
 
     /**
@@ -261,5 +264,44 @@ trait HasUpload
     public static function afterUploadUsing(Closure $callback) : void
     {
         static::$afterUploadCallback = $callback;
+    }
+
+    /**
+     * Allows you to delete all the previous uploads before saving the new uploads.
+     * Note: This won't be called when the upload is queued.
+     *
+     * @param bool $remove
+     *
+     * @return void
+     */
+    public static function deletePreviousUploads(bool $remove = true) : void
+    {
+        static::$deletePreviousUploads = $remove;
+    }
+
+    /**
+     * Since the upload process only happens when a model is created or updated,
+     * you can call this method to process the uploads manually.
+     * This is when the way you create or update the model doesn't trigger the `created` nor `updated` event.
+     * Note: Only call this method when you are sure that the `created` or `updated` event is not triggered. Otherwise, it will cause duplicate uploads.
+     *
+     * @return void
+     */
+    public function createUploads() : void
+    {
+        app(UploadableObserver::class)->create($this);
+    }
+
+    /**
+     * Since the upload process only happens when a model is created or updated,
+     * you can call this method to process the uploads manually.
+     * This is when you want to add new uploads into a model, but you didn't actually update the model.
+     * Note: Only call this method when you are sure that the `created` or `updated` event is not triggered. Otherwise, it will cause duplicate uploads.
+     *
+     * @return void
+     */
+    public function updateUploads() : void
+    {
+        app(UploadableObserver::class)->update($this);
     }
 }

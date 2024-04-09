@@ -19,6 +19,12 @@ return [
     'force_delete_uploads' => true,
 
     /**
+     * All previous uploads will be deleted after the new uploads are saved.
+     * This is to replace the old uploads with the new ones.
+     */
+    'delete_previous_uploads' => false,
+
+    /**
      * The queue to use when uploading files.
      * If null, the upload will not be queued.
      * Note: The `afterUploadUsing` method won't be called when the upload is queued.

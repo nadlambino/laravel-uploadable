@@ -19,6 +19,8 @@ class UploadAction
 
     private array $uploadedFullpaths = [];
 
+    private array $uploadedFileIds = [];
+
     public function __construct(private readonly Uploadable $uploadable)
     {
     }
@@ -28,6 +30,7 @@ class UploadAction
         $this->request = new Request($request->all());
 
         $this->uploads($files, $model);
+        $this->deletePreviousUploads($model);
     }
 
     private function uploads(array $files, Model $model) : void
@@ -66,11 +69,13 @@ class UploadAction
 
             $upload->uploadable()->associate($model);
             $upload->save();
-            $model->save();
+            $model->saveQuietly();
 
             $this->deleteTempFile($file);
 
             DB::commit();
+
+            $this->uploadedFileIds[] = $upload->id;
         } catch (Exception $exception) {
             DB::rollBack();
             $this->deleteUploadedFiles();
@@ -104,6 +109,23 @@ class UploadAction
         }
     }
 
+    private function deletePreviousUploads(Model $model) : void
+    {
+        $class = get_class($model);
+        $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
+
+        if ($class::$deletePreviousUploads === true && count($this->uploadedFileIds) > 0) {
+            $model->uploads()
+                ->whereNotIn('id', $this->uploadedFileIds)
+                ->where('created_at', '<', now())
+                ->get()
+                ->each(function (Upload $upload) use ($deleteMethod) {
+                    $this->uploadable->delete($upload->path);
+                    $upload->$deleteMethod();
+                });
+        }
+    }
+
     private function deleteTempFile(UploadedFile | string $file) : void
     {
         if (($file instanceof UploadedFile) === false) {
@@ -120,6 +142,10 @@ class UploadAction
 
     public function deleteModelQuietly(Model $model, bool $forced = false) : void
     {
+        if ($model->wasRecentlyCreated === false) {
+            return;
+        }
+
         $isOnQueue = config('uploadable.upload_on_queue_using') !== null;
 
         if (
@@ -127,9 +153,7 @@ class UploadAction
             (! $isOnQueue && config('uploadable.delete_model_on_upload_fail') === true) ||
             $forced === true
         ) {
-            DB::table($model->getTable())
-                ->where($model->getKeyName(), $model->{$model->getKeyName()})
-                ->delete();
+            $model->deleteQuietly();
         }
     }
 }

@@ -24,7 +24,19 @@ readonly class UploadableObserver
      */
     public function created(Model $model) : void
     {
+        $this->processUploads($model, true);
+    }
+
+    public function updated(Model $model) : void
+    {
+        $this->processUploads($model, false);
+    }
+
+    private function processUploads(Model $model, bool $deleteModelOnFail) : void
+    {
         try {
+            DB::beginTransaction();
+
             /** @var UploadedFile[] $uploads */
             $uploads = $model->getUploads();
             $request = $this->createRequestCollection();
@@ -36,8 +48,11 @@ readonly class UploadableObserver
             } else {
                 $this->uploadAction->handle($uploads, $model, $request);
             }
+
+            DB::commit();
         } catch (Exception $exception) {
-            $this->uploadAction->deleteModelQuietly($model, $exception instanceof ValidationException);
+            DB::rollBack();
+            $this->uploadAction->deleteModelQuietly($model, $exception instanceof ValidationException && $deleteModelOnFail);
 
             throw $exception;
         }
