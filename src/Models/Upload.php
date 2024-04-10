@@ -25,7 +25,7 @@ class Upload extends Model
         return $this->morphTo();
     }
 
-    public function url(): ?string
+    public function url() : ?string
     {
         if (! $this->path) {
             return null;

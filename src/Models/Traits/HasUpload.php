@@ -13,39 +13,60 @@ trait HasUpload
 {
     use UploadRelations, UploadValidation;
 
-    public static Closure|null $afterUploadCallback = null;
+    /**
+     * The callback that runs after the file has been uploaded.
+     *
+     * @var Closure|null $afterUploadCallback
+     */
+    public static Closure | null $afterUploadCallback = null;
 
+    /**
+     * Whether to delete all the previous uploads before saving the new uploads.
+     *
+     * @var bool $deletePreviousUploads
+     */
     public static bool $deletePreviousUploads = false;
 
+    /**
+     * Boot the trait.
+     *
+     * @return void
+     */
     public static function bootHasUpload() : void
     {
         static::observe(UploadableObserver::class);
         static::deletePreviousUploads(config('uploadable.delete_previous_uploads', false));
     }
 
+    /**
+     * Get an array of uploaded files from the request.
+     *
+     * @return array The uploaded files.
+     */
     public function getUploads() : array
     {
         $rules = $this->getUploadRules();
-        $validatable = array_filter($rules, fn ($value) => ! empty($value));
+        $validatable = array_filter($rules, fn($value) => ! empty($value));
 
         request()->validate($validatable, $this->uploadRulesMessages());
 
         $fields = collect($rules)
             ->keys()
             ->zip($rules)
-            ->map(fn ($pair) => is_numeric($pair[0]) ? $pair[1] : $pair[0])
+            ->map(fn($pair) => is_numeric($pair[0]) ? $pair[1] : $pair[0])
             ->all();
 
         return request()->only($fields);
     }
 
     /**
-     * Allows you to customize the filename of the uploaded file.
-     * Make sure to return a unique filename to avoid overwriting existing files.
+     * Get the name of the uploaded file.
+     * Make sure to return a unique name to avoid overwriting files.
      *
-     * @param UploadedFile $file
-     * @param Model $model
-     * @return string
+     * @param UploadedFile $file  The uploaded file.
+     * @param Model        $model The model that owns the uploaded file.
+     *
+     * @return string The name of the uploaded file.
      */
     public function getUploadFilename(UploadedFile $file, Model $model) : string
     {
@@ -53,11 +74,12 @@ trait HasUpload
     }
 
     /**
-     * Allows you to customize the path of the uploaded file.
+     * Get the path where the uploaded file will be stored.
      *
-     * @param UploadedFile $file
-     * @param Model $model
-     * @return string
+     * @param UploadedFile $file  The uploaded file.
+     * @param Model        $model The model that owns the uploaded file.
+     *
+     * @return string The path of the uploaded file.
      */
     public function getUploadPath(UploadedFile $file, Model $model) : string
     {
@@ -70,9 +92,9 @@ trait HasUpload
      * Note: The request object is a new request object that doesn't have the uploaded files.
      * This is because UploadedFile objects are not serializable.
      *
-     * @param Upload  $upload
-     * @param Model   $model
-     * @param Request $request
+     * @param Upload  $upload  The uploaded file's model.
+     * @param Model   $model   The model that owns the uploaded file.
+     * @param Request $request The request object.
      *
      * @return void
      */
@@ -88,7 +110,7 @@ trait HasUpload
      * Note: Make sure to call this method before saving the uploadable model.
      * Note: This won't be called when the upload is queued.
      *
-     * @param Closure $callback
+     * @param Closure $callback The callback that runs after the file has been uploaded.
      *
      * @return void
      */
@@ -101,7 +123,7 @@ trait HasUpload
      * Allows you to delete all the previous uploads before saving the new uploads.
      * Note: This won't be called when the upload is queued.
      *
-     * @param bool $remove
+     * @param bool $remove Whether to delete all the previous uploads before saving the new uploads.
      *
      * @return void
      */

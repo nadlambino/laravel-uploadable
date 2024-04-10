@@ -15,7 +15,7 @@ trait UploadRelations
     /**
      * Returns the upload relation of all types.
      *
-     * @return MorphOne
+     * @return MorphOne The upload relation.
      */
     public function upload() : MorphOne
     {
@@ -25,7 +25,7 @@ trait UploadRelations
     /**
      * Returns the upload relation of all types.
      *
-     * @return MorphMany
+     * @return MorphMany The upload relation.
      */
     public function uploads() : MorphMany
     {
@@ -35,9 +35,9 @@ trait UploadRelations
     /**
      * Returns the upload relation of image type.
      *
-     * @return MorphOne
+     * @return MorphOne The upload relation.
      */
-    public function image(): MorphOne
+    public function image() : MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable')
             ->where(function ($query) {
@@ -49,9 +49,9 @@ trait UploadRelations
     /**
      * Returns the upload relation of image type.
      *
-     * @return MorphMany
+     * @return MorphMany The upload relation.
      */
-    public function images(): MorphMany
+    public function images() : MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable')
             ->where(function ($query) {
@@ -63,6 +63,7 @@ trait UploadRelations
     /**
      * Returns the upload relation of video type.
      *
+     * @return MorphOne The upload relation.
      */
     public function video() : MorphOne
     {
@@ -76,7 +77,7 @@ trait UploadRelations
     /**
      * Returns the upload relation of video type.
      *
-     * @return MorphMany
+     * @return MorphMany The upload relation.
      */
     public function videos() : MorphMany
     {
@@ -90,7 +91,7 @@ trait UploadRelations
     /**
      * Returns the upload relation of type that is not image or video.
      *
-     * @return MorphOne
+     * @return MorphOne The upload relation.
      */
     public function document() : MorphOne
     {
@@ -104,7 +105,7 @@ trait UploadRelations
     /**
      * Returns the upload relation of type that is not image or video.
      *
-     * @return MorphMany
+     * @return MorphMany The upload relation.
      */
     public function documents() : MorphMany
     {

@@ -20,6 +20,8 @@ readonly class UploadableObserver
     }
 
     /**
+     * Handle the Model "created" event.
+     *
      * @throws Exception
      */
     public function created(Model $model) : void
@@ -27,11 +29,24 @@ readonly class UploadableObserver
         $this->processUploads($model, true);
     }
 
+    /**
+     * Handle the Model "updated" event.
+     *
+     * @throws Exception
+     */
     public function updated(Model $model) : void
     {
         $this->processUploads($model, false);
     }
 
+    /**
+     * Process the uploads.
+     *
+     * @param Model $model             The model that owns the uploads.
+     * @param bool  $deleteModelOnFail Whether to delete the model if the upload fails.
+     *
+     * @throws Exception
+     */
     private function processUploads(Model $model, bool $deleteModelOnFail) : void
     {
         try {
@@ -58,6 +73,13 @@ readonly class UploadableObserver
         }
     }
 
+    /**
+     * Upload the temporary files.
+     *
+     * @param UploadedFile[] $files The files to upload.
+     *
+     * @return string[] The paths where the files were stored.
+     */
     private function uploadTempFiles(array $files) : array
     {
         $paths = [];
@@ -76,6 +98,11 @@ readonly class UploadableObserver
         return $paths;
     }
 
+    /**
+     * Create a collection from the request without the uploaded files.
+     *
+     * @return Collection The collection.
+     */
     private function createRequestCollection() : Collection
     {
         /** @var Request $request */
@@ -90,6 +117,12 @@ readonly class UploadableObserver
         return collect($request->request->all());
     }
 
+    /**
+     * Remove the uploaded files from the request.
+     *
+     * @param array   $requestArray  The request array.
+     * @param Request $requestObject The request object.
+     */
     private function removeFilesFromRequest(array $requestArray, Request $requestObject) : void
     {
         foreach ($requestArray as $key => $value) {
@@ -103,6 +136,11 @@ readonly class UploadableObserver
         }
     }
 
+    /**
+     * Handle the Model "deleted" event.
+     *
+     * @throws Exception
+     */
     public function deleted($model) : void
     {
         try {
