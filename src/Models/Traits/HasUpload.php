@@ -218,7 +218,7 @@ trait HasUpload
      */
     public function getUploadFilename(UploadedFile $file, Model $model) : string
     {
-        return $file->hashName();
+        return str_replace('.', '', microtime(true)) . '-' . $file->hashName();
     }
 
     /**

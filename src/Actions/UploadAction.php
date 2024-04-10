@@ -117,7 +117,6 @@ class UploadAction
         if ($class::$deletePreviousUploads === true && count($this->uploadedFileIds) > 0) {
             $model->uploads()
                 ->whereNotIn('id', $this->uploadedFileIds)
-                ->where('created_at', '<', now())
                 ->get()
                 ->each(function (Upload $upload) use ($deleteMethod) {
                     $this->uploadable->delete($upload->path);
