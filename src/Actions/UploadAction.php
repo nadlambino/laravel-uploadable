@@ -17,6 +17,13 @@ use NadLambino\Uploadable\Uploadable;
 class UploadAction
 {
     /**
+     * The model that owns the uploads.
+     *
+     * @var Model $model
+     */
+    private Model $model;
+
+    /**
      * The full paths of the uploaded files.
      *
      * @var array $uploadedFullpaths
@@ -53,28 +60,28 @@ class UploadAction
      */
     public function handle(array $files, Model $model, array $options = []) : void
     {
+        $this->model = $model;
         $this->options = $options;
 
-        $this->uploads($files, $model);
-        $this->deletePreviousUploads($model);
+        $this->uploads($files);
+        $this->deletePreviousUploads();
     }
 
     /**
      * Upload the files.
      *
      * @param array $files The files to upload.
-     * @param Model $model The model that owns the uploads.
      *
      * @return void
      * @throws Exception
      */
-    private function uploads(array $files, Model $model) : void
+    private function uploads(array $files) : void
     {
         foreach ($files as $file) {
             if (is_array($file)) {
-                $this->uploads($file, $model);
+                $this->uploads($file);
             } else {
-                $this->upload($file, $model);
+                $this->upload($file);
             }
         }
     }
@@ -82,21 +89,20 @@ class UploadAction
     /**
      * Upload the file.
      *
-     * @param UploadedFile|string $file  The file to upload.
-     * @param Model               $model The model that owns the upload.
+     * @param UploadedFile|string $file The file to upload.
      *
      * @return void
      * @throws Exception
      */
-    private function upload(UploadedFile | string $file, Model $model) : void
+    private function upload(UploadedFile | string $file) : void
     {
         try {
             DB::beginTransaction();
 
             $uploadedFileInstance = $this->getUploadedFileInstance($file);
 
-            $path = $model->getUploadPath($uploadedFileInstance, $model);
-            $filename = $model->getUploadFilename($uploadedFileInstance, $model);
+            $path = $this->model->getUploadPath($uploadedFileInstance);
+            $filename = $this->model->getUploadFilename($uploadedFileInstance);
 
             $fullpath = $this->uploadable->upload($uploadedFileInstance, $path, $filename);
             $this->uploadedFullpaths[] = $fullpath;
@@ -109,11 +115,11 @@ class UploadAction
             $upload->size = $uploadedFileInstance->getSize();
             $upload->type = $uploadedFileInstance->getMimeType();
 
-            $this->afterUpload($upload, $model);
+            $this->afterUpload($upload);
 
-            $upload->uploadable()->associate($model);
+            $upload->uploadable()->associate($this->model);
             $upload->save();
-            $model->saveQuietly();
+            $this->model->saveQuietly();
 
             $this->deleteTempFile($file);
 
@@ -123,7 +129,7 @@ class UploadAction
         } catch (Exception $exception) {
             DB::rollBack();
             $this->deleteUploadedFiles();
-            $this->undoModelChanges($model);
+            $this->undoModelChanges($this->model);
 
             throw $exception;
         }
@@ -152,34 +158,31 @@ class UploadAction
      * Run the after upload callback.
      *
      * @param Upload $upload The upload model.
-     * @param Model  $model  The model that owns the upload.
      *
      * @return void
      * @throws PhpVersionNotSupportedException
      */
-    private function afterUpload(Upload $upload, Model $model) : void
+    private function afterUpload(Upload $upload) : void
     {
         $callback = Arr::get($this->options, 'afterUploadUsing');
         if ($callback instanceof SerializableClosure || $callback instanceof Closure) {
-            $callback($upload, $model);
+            $callback($upload, $this->model);
         } else {
-            $model->afterUpload($upload, $model);
+            $this->model->afterUpload($upload, $this->model);
         }
     }
 
     /**
      * Delete all the previous uploads from the database and storage.
      *
-     * @param Model $model The model that owns the uploads to delete.
-     *
      * @return void
      */
-    private function deletePreviousUploads(Model $model) : void
+    private function deletePreviousUploads() : void
     {
         $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
 
         if (Arr::get($this->options, 'deletePreviousUploads', false) && count($this->uploadedFileIds) > 0) {
-            $model->uploads()
+            $this->model->uploads()
                 ->whereNotIn('id', $this->uploadedFileIds)
                 ->get()
                 ->each(function (Upload $upload) use ($deleteMethod) {

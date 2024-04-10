@@ -71,12 +71,11 @@ trait HasUpload
      * Get the name of the uploaded file.
      * Make sure to return a unique name to avoid overwriting files.
      *
-     * @param UploadedFile $file  The uploaded file.
-     * @param Model        $model The model that owns the uploaded file.
+     * @param UploadedFile $file The uploaded file.
      *
      * @return string The name of the uploaded file.
      */
-    public function getUploadFilename(UploadedFile $file, Model $model) : string
+    public function getUploadFilename(UploadedFile $file) : string
     {
         return str_replace('.', '', microtime(true)) . '-' . $file->hashName();
     }
@@ -84,21 +83,20 @@ trait HasUpload
     /**
      * Get the path where the uploaded file will be stored.
      *
-     * @param UploadedFile $file  The uploaded file.
-     * @param Model        $model The model that owns the uploaded file.
+     * @param UploadedFile $file The uploaded file.
      *
      * @return string The path of the uploaded file.
      */
-    public function getUploadPath(UploadedFile $file, Model $model) : string
+    public function getUploadPath(UploadedFile $file) : string
     {
-        return $model->getTable() . DIRECTORY_SEPARATOR . $model->id;
+        return $this->getTable() . DIRECTORY_SEPARATOR . $this->id;
     }
 
     /**
      * Runs after the file has been uploaded and before the upload data are saved in the database.
      *
-     * @param Upload  $upload  The uploaded file's model.
-     * @param Model   $model   The model that owns the uploaded file.
+     * @param Upload $upload The uploaded file's model.
+     * @param Model  $model  The model that owns the uploaded file.
      *
      * @return void
      */
