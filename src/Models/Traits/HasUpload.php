@@ -122,7 +122,6 @@ trait HasUpload
 
     /**
      * Allows you to delete all the previous uploads before saving the new uploads.
-     * Note: This won't be called when the upload is queued.
      *
      * @param bool $remove Whether to delete all the previous uploads before saving the new uploads.
      *
@@ -135,7 +134,6 @@ trait HasUpload
 
     /**
      * Allows you to disable the upload process.
-     * Note: This won't be called when the upload is queued.
      *
      * @return void
      */
