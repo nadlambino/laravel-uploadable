@@ -20,7 +20,9 @@ php artisan vendor:publish --tag="uploadable-migrations"
 php artisan migrate
 ```
 
->**NOTE:** You can add more fields in the uploads table but the default fields should remain.
+> [!NOTE]
+> 
+> You can add more fields in the uploads table but the default fields should remain.
 
 You can publish the config file with:
 
@@ -30,7 +32,7 @@ php artisan vendor:publish --tag="uploadable-config"
 
 ## Usage
 
-Simply use the `NadLambino\Uploadable\Models\Traits\HasUpload` trait in the model that needs file uploads.
+Simply use the `NadLambino\Uploadable\Models\Traits\HasUpload` trait in your models that need file uploads.
 
 ```php
 namespace App\Models;
@@ -44,8 +46,8 @@ class Post extends Model
 }
 ```
 
-Now, everytime you create a `Post` and there is a file included in your request, 
-it will automatically upload the file and save the details in `uploads` table.
+Now, everytime you create or update a post, it will automatically upload the file included in your request
+and save the details in `uploads` table.
 
 Files from the request should have the following request names:
 
@@ -58,14 +60,16 @@ Files from the request should have the following request names:
 | video        | Single video upload       | sometimes, mime        |
 | videos       | Multiple video uploads    | sometimes, mime        |
 
-You can add more fields and their rules or override the default ones by defining the `uploadRules`
+You can add more fields or override the default ones by defining the `uploadRules`
 method in your model.
 ```php
 protected function uploadRules() : array
 {
     return [
-        'document' => ['required', 'file', 'mime:application/pdf'], // Override the `document` rules
-        'avatar' => ['required', 'image', 'mime:png'] // Add new field
+        // Override the `document` rules
+        'document' => ['required', 'file', 'mime:application/pdf'], 
+        // Add a new field
+        'avatar' => ['required', 'image', 'mime:png'] 
     ];
 }
 ```
@@ -83,11 +87,97 @@ public function uploadRulesMessages() : array
 }
 ```
 
->**NOTE:** 
-> File upload happens once the model `created` event was fired, 
-> so make sure that the way you create the uploadable model should be firing this event.
+## Customizing the file name and path
+
+You can customize the file name and path by defining the `getUploadFilename` and `uploadFilePath` methods in your model.
+
+```php
+public function getUploadFilename(UploadedFile $file) : string
+{
+    return str_replace('.', '', microtime(true)) . '-' . $file->hashName();
+}
+
+public function getUploadPath(UploadedFile $file) : string
+{
+    return $this->getTable() . DIRECTORY_SEPARATOR . $this->{$this->getKeyName()};
+}
+```
+
+> [!IMPORTANT]
+> 
+> Make sure that the file name is completely unique to avoid overwriting existing files.
+
+## Manually processing file uploads
+
+File upload happens when the uploadable model's `created` or `updated` event was fired.
+If you're creating or updating an uploadable model without these events, 
+you can call the `createUploads` or `updateUploads` method to manually process the file uploads.
+
+```php
+public function update(Request $request, Post $post)
+{
+    $post->update($request->all());
+    
+    // When the post did not change, the `updated` event won't be fired.
+    // So, we need to manually call the `updateUploads` method.
+    if (! $post->wasChanged()) {
+        $post->updateUploads();
+    }
+}
+```
+> [!IMPORTANT]
+> 
+> The `createUploads` will delete the uploadable model when the upload process failed, 
+> while `updateUploads` will update it to its previous attributes.
+
+## Temporarily disabling file uploads
+
+You can temporarily disable the file uploads by calling the static method `dontUpload`.
+
+```php
+public function update(Request $request, Post $post)
+{
+    // Temporarily disable the file uploads
+    Post::dontUpload();
+    
+    $post->update($request->all());
+    
+    // Do more stuff here...
+    
+    // Manually process the uploads after everything you want to do.
+    $post->updateUploads();
+}
+```
+
+## Uploading files on model update
+
+By default, when you update an uploadable model, the files from the request will add up to the existing uploaded files.
+If you want to replace the existing files with the new ones, you can configure it in the `uploadable.php` config file.
+
+```php
+'delete_previous_uploads' => false,
+```
+
+Or alternatively, you can call the static method `deletePreviousUploads` before updating the model.
+
+```php
+public function update(Request $request, Post $post)
+{
+    // Delete the previous uploads
+    Post::deletePreviousUploads();
+    
+    $post->update($request->all());
+}
+```
+
+> [!NOTE]
+> 
+> The process of deleting the previous uploads will only happen when new uploads were successfully uploaded.
+
+## Relation methods
 
 There are already pre-defined relation method for specific upload type.
+
 ```php
 // Relation for all types of uploads
 public function upload() : MorphOne { }
@@ -114,24 +204,34 @@ public function document() : MorphOne { }
 public function documents() : MorphMany { }
 ```
 
-You can define an `afterUpload` method which runs after the file is uploaded and before the file details is saved in the database.
-This is useful if you have additional fields in `uploads` table that you want to have a value before saving, or you want to fire an
-event to notify the user that the upload was successful.
+## After uploading
+
+If you want to do something after the file is uploaded, you can define the `afterUpload` method in your model.
+This method will be called after the file is uploaded and before the file details is saved in the database.
+
 ```php
-public function afterUpload(Upload $upload, Model $model, Request $request) : void
+public function afterUpload(Upload $upload, Model $model) : void
 {
     $upload->additional_field = "some value";
 }
 ```
 
 Alternatively, you can statically call the `afterUploadUsing` method and pass a closure.
+The closure has the same parameters as the `afterUpload` method.
+Just make sure that you call this method before creating or updating the uploadable model.
+
 ```php
-Post::afterUploadUsing(function (Upload $upload, Post $model) {
+Post::afterUploadUsing(function (Upload $upload, Post $model) use ($request->get('additional_field')) {
     $model->additional_field = "some value";
 });
 ```
 
-## Queuing
+> [!IMPORTANT]
+> 
+> When you're queueing the file upload process, and you're using the `afterUploadUsing` method,
+> make sure that the closure and its dependencies are serializable.
+
+## Queueing
 
 You can queue the file upload process by defining the queue name in the config.
 
