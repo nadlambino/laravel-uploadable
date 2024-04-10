@@ -289,7 +289,7 @@ trait HasUpload
      */
     public function createUploads() : void
     {
-        app(UploadableObserver::class)->create($this);
+        app(UploadableObserver::class)->created($this);
     }
 
     /**
@@ -302,6 +302,6 @@ trait HasUpload
      */
     public function updateUploads() : void
     {
-        app(UploadableObserver::class)->update($this);
+        app(UploadableObserver::class)->updated($this);
     }
 }
