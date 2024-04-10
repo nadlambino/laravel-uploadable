@@ -124,22 +124,16 @@ public function afterUpload(Upload $upload, Model $model, Request $request) : vo
 }
 ```
 
-Alternatively, you can statically call the `afterUploadUsing` method in the uploadable model then call this method before the uploadable data is saved.
+Alternatively, you can statically call the `afterUploadUsing` method and pass a closure.
 ```php
 Post::afterUploadUsing(function (Upload $upload, Post $model) {
     $model->additional_field = "some value";
 });
 ```
 
->**NOTE:**
-> The request object that the `afterUpload` receives is a new request object that doesn't contain the uploaded files.
-> This is because when queueing the upload process, UploadedFile objects are not serializable.
-> The `afterUploadUsing` method will not be called when you queue the file upload process.
-
 ## Queuing
 
-You can queue the file upload process by defining the queue name in the config. However, when you queue the file upload process, 
-the `afterUploadUsing` method will not be called and instead will call the `afterUpload` method.
+You can queue the file upload process by defining the queue name in the config.
 
 ```php
 'upload_on_queue_using' => null,

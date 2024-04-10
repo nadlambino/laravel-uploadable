@@ -5,23 +5,17 @@ namespace NadLambino\Uploadable\Actions;
 use Closure;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Laravel\SerializableClosure\Exceptions\PhpVersionNotSupportedException;
+use Laravel\SerializableClosure\SerializableClosure;
 use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Uploadable;
 
 class UploadAction
 {
-    /**
-     * The request collection.
-     *
-     * @var Request $request
-     */
-    private Request $request;
-
     /**
      * The full paths of the uploaded files.
      *
@@ -36,6 +30,13 @@ class UploadAction
      */
     private array $uploadedFileIds = [];
 
+    /**
+     * The options for the upload process.
+     *
+     * @var array $options
+     */
+    private array $options = [];
+
     public function __construct(private readonly Uploadable $uploadable)
     {
     }
@@ -43,16 +44,16 @@ class UploadAction
     /**
      * Handle the upload process.
      *
-     * @param array      $files   The files to upload.
-     * @param Model      $model   The model that owns the uploads.
-     * @param Collection $request The request collection.
+     * @param array $files   The files to upload.
+     * @param Model $model   The model that owns the uploads.
+     * @param array $options The options for the upload process.
      *
      * @return void
      * @throws Exception
      */
-    public function handle(array $files, Model $model, Collection $request) : void
+    public function handle(array $files, Model $model, array $options = []) : void
     {
-        $this->request = new Request($request->all());
+        $this->options = $options;
 
         $this->uploads($files, $model);
         $this->deletePreviousUploads($model);
@@ -154,16 +155,15 @@ class UploadAction
      * @param Model  $model  The model that owns the upload.
      *
      * @return void
+     * @throws PhpVersionNotSupportedException
      */
     private function afterUpload(Upload $upload, Model $model) : void
     {
-        $class = get_class($model);
-
-        if ($class::$afterUploadCallback instanceof Closure) {
-            $callback = $class::$afterUploadCallback;
+        $callback = Arr::get($this->options, 'afterUploadUsing');
+        if ($callback instanceof SerializableClosure || $callback instanceof Closure) {
             $callback($upload, $model);
         } else {
-            $model->afterUpload($upload, $model, $this->request);
+            $model->afterUpload($upload, $model);
         }
     }
 
@@ -176,10 +176,9 @@ class UploadAction
      */
     private function deletePreviousUploads(Model $model) : void
     {
-        $class = get_class($model);
         $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
 
-        if ($class::$deletePreviousUploads === true && count($this->uploadedFileIds) > 0) {
+        if (Arr::get($this->options, 'deletePreviousUploads', false) && count($this->uploadedFileIds) > 0) {
             $model->uploads()
                 ->whereNotIn('id', $this->uploadedFileIds)
                 ->get()

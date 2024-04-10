@@ -4,9 +4,7 @@ namespace NadLambino\Uploadable\Observers;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use NadLambino\Uploadable\Jobs\ProcessUploadJob;
@@ -52,21 +50,20 @@ readonly class UploadableObserver
         try {
             DB::beginTransaction();
 
-            $class = get_class($model);
-            if ($class::$dontUpload === true) {
+            $options = $this->getOptions($model);
+            if ($options['dontUpload'] === true) {
                 return;
             }
 
             /** @var UploadedFile[] $uploads */
             $uploads = $model->getUploads();
-            $request = $this->createRequestCollection();
 
             if (($queue = config('uploadable.upload_on_queue_using')) !== null) {
                 $paths = $this->uploadTempFiles($uploads);
 
-                ProcessUploadJob::dispatch($paths, $model, $request)->onQueue($queue);
+                ProcessUploadJob::dispatch($paths, $model, $options)->onQueue($queue);
             } else {
-                $this->uploadAction->handle($uploads, $model, $request);
+                $this->uploadAction->handle($uploads, $model, $options);
             }
 
             DB::commit();
@@ -76,6 +73,26 @@ readonly class UploadableObserver
 
             throw $exception;
         }
+    }
+
+    /**
+     * Get the options for the upload process.
+     * This includes the options that were statically set in the uploadable model which won't be included when the model is serialized.
+     * This is specifically useful when the upload process is queued.
+     *
+     * @param Model $model The model that owns the uploads.
+     *
+     * @return array The options for the upload process.
+     */
+    private function getOptions(Model $model) : array
+    {
+        $class = get_class($model);
+
+        return [
+            'deletePreviousUploads' => $class::$deletePreviousUploads ?? false,
+            'afterUploadUsing' => $class::$afterUploadCallback ?? null,
+            'dontUpload' => $class::$dontUpload ?? false,
+        ];
     }
 
     /**
@@ -101,44 +118,6 @@ readonly class UploadableObserver
         }
 
         return $paths;
-    }
-
-    /**
-     * Create a collection from the request without the uploaded files.
-     *
-     * @return Collection The collection.
-     */
-    private function createRequestCollection() : Collection
-    {
-        /** @var Request $request */
-        $request = request();
-
-        foreach ($request->files as $key => $file) {
-            $request->files->remove($key);
-        }
-
-        $this->removeFilesFromRequest($request->all(), $request);
-
-        return collect($request->request->all());
-    }
-
-    /**
-     * Remove the uploaded files from the request.
-     *
-     * @param array   $requestArray  The request array.
-     * @param Request $requestObject The request object.
-     */
-    private function removeFilesFromRequest(array $requestArray, Request $requestObject) : void
-    {
-        foreach ($requestArray as $key => $value) {
-            if ($value instanceof UploadedFile) {
-                $requestObject->request->remove($key);
-            }
-
-            if (is_array($value)) {
-                $this->removeFilesFromRequest($value, $requestObject);
-            }
-        }
     }
 
     /**

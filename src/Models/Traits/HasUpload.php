@@ -4,8 +4,9 @@ namespace NadLambino\Uploadable\Models\Traits;
 
 use Closure;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Laravel\SerializableClosure\Exceptions\PhpVersionNotSupportedException;
+use Laravel\SerializableClosure\SerializableClosure;
 use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Observers\UploadableObserver;
 
@@ -16,9 +17,9 @@ trait HasUpload
     /**
      * The callback that runs after the file has been uploaded.
      *
-     * @var Closure|null $afterUploadCallback
+     * @var SerializableClosure|null $afterUploadCallback
      */
-    public static Closure | null $afterUploadCallback = null;
+    public static SerializableClosure | null $afterUploadCallback = null;
 
     /**
      * Whether to delete all the previous uploads before saving the new uploads.
@@ -95,35 +96,30 @@ trait HasUpload
 
     /**
      * Runs after the file has been uploaded and before the upload data are saved in the database.
-     * This method is useful for modifying or storing additional details in uploads or uploadable's table.
-     * Note: The request object is a new request object that doesn't have the uploaded files.
-     * This is because UploadedFile objects are not serializable.
      *
      * @param Upload  $upload  The uploaded file's model.
      * @param Model   $model   The model that owns the uploaded file.
-     * @param Request $request The request object.
      *
      * @return void
      */
-    public function afterUpload(Upload $upload, Model $model, Request $request) : void
+    public function afterUpload(Upload $upload, Model $model) : void
     {
 
     }
 
     /**
-     * Allows you to run a custom callback after the file has been uploaded.
-     * The callback receives the Upload model and Uploadable Model.
-     * This allows you to override the `afterUpload` method in case you want to do something different.
+     * Runs after the file has been uploaded and before the upload data are saved in the database.
+     * The callback receives the Upload model as the first argument and the Uploadable model as the second argument.
      * Note: Make sure to call this method before saving the uploadable model.
-     * Note: This won't be called when the upload is queued.
      *
      * @param Closure $callback The callback that runs after the file has been uploaded.
      *
      * @return void
+     * @throws PhpVersionNotSupportedException
      */
     public static function afterUploadUsing(Closure $callback) : void
     {
-        static::$afterUploadCallback = $callback;
+        static::$afterUploadCallback = new SerializableClosure($callback);
     }
 
     /**
