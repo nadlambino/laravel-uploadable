@@ -52,7 +52,7 @@ readonly class UploadableObserver
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->uploadAction->deleteModelQuietly($model, $exception instanceof ValidationException && $deleteModelOnFail);
+            $this->uploadAction->undoModelChanges($model, $exception instanceof ValidationException && $deleteModelOnFail);
 
             throw $exception;
         }

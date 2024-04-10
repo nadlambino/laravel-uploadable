@@ -15,16 +15,41 @@ use NadLambino\Uploadable\Uploadable;
 
 class UploadAction
 {
+    /**
+     * The request collection.
+     *
+     * @var Request $request
+     */
     private Request $request;
 
+    /**
+     * The full paths of the uploaded files.
+     *
+     * @var array $uploadedFullpaths
+     */
     private array $uploadedFullpaths = [];
 
+    /**
+     * The ids of the uploaded files.
+     *
+     * @var array $uploadedFileIds
+     */
     private array $uploadedFileIds = [];
 
     public function __construct(private readonly Uploadable $uploadable)
     {
     }
 
+    /**
+     * Handle the upload process.
+     *
+     * @param array      $files   The files to upload.
+     * @param Model      $model   The model that owns the uploads.
+     * @param Collection $request The request collection.
+     *
+     * @return void
+     * @throws Exception
+     */
     public function handle(array $files, Model $model, Collection $request) : void
     {
         $this->request = new Request($request->all());
@@ -33,6 +58,15 @@ class UploadAction
         $this->deletePreviousUploads($model);
     }
 
+    /**
+     * Upload the files.
+     *
+     * @param array $files The files to upload.
+     * @param Model $model The model that owns the uploads.
+     *
+     * @return void
+     * @throws Exception
+     */
     private function uploads(array $files, Model $model) : void
     {
         foreach ($files as $file) {
@@ -44,6 +78,15 @@ class UploadAction
         }
     }
 
+    /**
+     * Upload the file.
+     *
+     * @param UploadedFile|string $file  The file to upload.
+     * @param Model               $model The model that owns the upload.
+     *
+     * @return void
+     * @throws Exception
+     */
     private function upload(UploadedFile | string $file, Model $model) : void
     {
         try {
@@ -79,12 +122,19 @@ class UploadAction
         } catch (Exception $exception) {
             DB::rollBack();
             $this->deleteUploadedFiles();
-            $this->deleteModelQuietly($model);
+            $this->undoModelChanges($model);
 
             throw $exception;
         }
     }
 
+    /**
+     * Get the uploaded file instance.
+     *
+     * @param UploadedFile|string $file The file to get the instance.
+     *
+     * @return UploadedFile
+     */
     private function getUploadedFileInstance(string | UploadedFile $file) : UploadedFile
     {
         if ($file instanceof UploadedFile) {
@@ -97,6 +147,14 @@ class UploadAction
         return new UploadedFile($root . DIRECTORY_SEPARATOR . $file, basename($file));
     }
 
+    /**
+     * Run the after upload callback.
+     *
+     * @param Upload $upload The upload model.
+     * @param Model  $model  The model that owns the upload.
+     *
+     * @return void
+     */
     private function afterUpload(Upload $upload, Model $model) : void
     {
         $class = get_class($model);
@@ -109,6 +167,13 @@ class UploadAction
         }
     }
 
+    /**
+     * Delete all the previous uploads from the database and storage.
+     *
+     * @param Model $model The model that owns the uploads to delete.
+     *
+     * @return void
+     */
     private function deletePreviousUploads(Model $model) : void
     {
         $class = get_class($model);
@@ -125,6 +190,13 @@ class UploadAction
         }
     }
 
+    /**
+     * Delete the temporary file from the storage.
+     *
+     * @param UploadedFile|string $file The file to delete.
+     *
+     * @return void
+     */
     private function deleteTempFile(UploadedFile | string $file) : void
     {
         if (($file instanceof UploadedFile) === false) {
@@ -132,6 +204,11 @@ class UploadAction
         }
     }
 
+    /**
+     * Delete all the uploaded files from the storage.
+     *
+     * @return void
+     */
     private function deleteUploadedFiles() : void
     {
         foreach ($this->uploadedFullpaths as $fullpath) {
@@ -139,12 +216,51 @@ class UploadAction
         }
     }
 
-    public function deleteModelQuietly(Model $model, bool $forced = false) : void
+    /**
+     * Undo the changes made to the model.
+     * If the model was just created, it will be deleted.
+     * If the model was updated, it will be updated with the original attributes.
+     *
+     * @param Model $model  The model to undo changes or to delete.
+     * @param bool  $forced Force delete the model if it was just created.
+     *
+     * @return void
+     */
+    public function undoModelChanges(Model $model, bool $forced = false) : void
     {
         if ($model->wasRecentlyCreated === false) {
+            $this->undoChangesFromUploadableModel($model);
             return;
         }
 
+        $this->deleteUploadableModel($model, $forced);
+    }
+
+    /**
+     * Undo the changes made to the model.
+     *
+     * @param Model $model The model to undo changes.
+     *
+     * @return void
+     */
+    private function undoChangesFromUploadableModel(Model $model) : void
+    {
+        $attributes = $model->getOriginal();
+        $model->fresh()
+            ->forceFill($attributes)
+            ->updateQuietly();
+    }
+
+    /**
+     * Delete the uploadable model.
+     *
+     * @param Model $model  The model to delete.
+     * @param bool  $forced Force delete the model.
+     *
+     * @return void
+     */
+    private function deleteUploadableModel(Model $model, bool $forced = false) : void
+    {
         $isOnQueue = config('uploadable.upload_on_queue_using') !== null;
 
         if (
@@ -152,7 +268,9 @@ class UploadAction
             (! $isOnQueue && config('uploadable.delete_model_on_upload_fail') === true) ||
             $forced === true
         ) {
-            $model->deleteQuietly();
+            DB::table($model->getTable())
+                ->where($model->getKeyName(), $model->{$model->getKeyName()})
+                ->delete();
         }
     }
 }
