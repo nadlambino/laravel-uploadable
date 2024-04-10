@@ -89,7 +89,7 @@ trait HasUpload
      */
     public function getUploadPath(UploadedFile $file) : string
     {
-        return $this->getTable() . DIRECTORY_SEPARATOR . $this->id;
+        return $this->getTable() . DIRECTORY_SEPARATOR . $this->{$this->getKeyName()};
     }
 
     /**
