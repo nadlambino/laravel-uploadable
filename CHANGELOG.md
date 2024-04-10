@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Although we try to follow the semantic versioning, breaking changes until v1.0.0 may release in minor versions.
 This is to avoid jumping to v1.0.0 too soon while the package is still in development.
 
+## [v0.5.1] - 2024-04-10
+
+### Fixed
+- [595e2ed](https://github.com/nadlambino/laravel-uploadable/commit/595e2edc6e252ea14ab85cc609bf00100af69863) Fix incorrect observer method call
+- [5d47912](https://github.com/nadlambino/laravel-uploadable/commit/5d47912198c132231d5393147a83bf6dbc46a6ba) Fix issue with deleting duplicate uploads by making the filename as unique as possible
+
+### Changed
+- [40702fb](https://github.com/nadlambino/laravel-uploadable/commit/40702fb802310bac96ba2111d4c62d94ff5f3c1d) Delete or update the uploadable model to its previous state if the upload process fails
+- [177b71d](https://github.com/nadlambino/laravel-uploadable/commit/177b71d180a30282c9fcbeb373b74eaf2992a63b) `afterUploadUsing` is now wrapped with `Laravel\SerializableClosure\SerializableClosure`
+- [d6ea23a](https://github.com/nadlambino/laravel-uploadable/commit/d6ea23a546e823f17ff9be6c0c8c4eb82c4cfbd1) Remove the uploadable model being passed to `getUploadFilename` and `getUploadPath` methods
+
+### Added
+- [b9b89aa](https://github.com/nadlambino/laravel-uploadable/commit/b9b89aae865c70e04951502ca4bf26dc43c62d8a) Allow disabling the upload process
+
 ## [v0.4.1] - 2024-04-09
 
 ### Changed
