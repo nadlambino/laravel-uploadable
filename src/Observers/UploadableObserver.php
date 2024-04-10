@@ -52,6 +52,11 @@ readonly class UploadableObserver
         try {
             DB::beginTransaction();
 
+            $class = get_class($model);
+            if ($class::$dontUpload === true) {
+                return;
+            }
+
             /** @var UploadedFile[] $uploads */
             $uploads = $model->getUploads();
             $request = $this->createRequestCollection();

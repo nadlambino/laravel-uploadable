@@ -28,6 +28,13 @@ trait HasUpload
     public static bool $deletePreviousUploads = false;
 
     /**
+     * Whether to upload the files or not.
+     *
+     * @var bool $dontUpload
+     */
+    public static bool $dontUpload = false;
+
+    /**
      * Boot the trait.
      *
      * @return void
@@ -133,6 +140,17 @@ trait HasUpload
     }
 
     /**
+     * Allows you to disable the upload process.
+     * Note: This won't be called when the upload is queued.
+     *
+     * @return void
+     */
+    public static function dontUpload() : void
+    {
+        static::$dontUpload = true;
+    }
+
+    /**
      * Since the upload process only happens when a model is created,
      * you can call this method to create the uploads manually.
      * Note: Only call this method when you are sure that the `created` event was not triggered.
@@ -142,6 +160,8 @@ trait HasUpload
      */
     public function createUploads() : void
     {
+        $this::$dontUpload = false;
+
         app(UploadableObserver::class)->created($this);
     }
 
@@ -155,6 +175,8 @@ trait HasUpload
      */
     public function updateUploads() : void
     {
+        $this::$dontUpload = false;
+
         app(UploadableObserver::class)->updated($this);
     }
 }
