@@ -4,19 +4,15 @@ namespace NadLambino\Uploadable\Models\Traits;
 
 use Closure;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Observers\UploadableObserver;
 
-/**
- * @method morphOne(string $class, string $name)
- * @method morphMany(string $class, string $name)
- */
 trait HasUpload
 {
+    use UploadRelations, UploadValidation;
+
     public static Closure|null $afterUploadCallback = null;
 
     public static bool $deletePreviousUploads = false;
@@ -25,171 +21,6 @@ trait HasUpload
     {
         static::observe(UploadableObserver::class);
         static::deletePreviousUploads(config('uploadable.delete_previous_uploads', false));
-    }
-
-    /**
-     * Returns the upload relation of all types.
-     *
-     * @return MorphOne
-     */
-    public function upload() : MorphOne
-    {
-        return $this->morphOne(Upload::class, 'uploadable');
-    }
-
-    /**
-     * Returns the upload relation of all types.
-     *
-     * @return MorphMany
-     */
-    public function uploads() : MorphMany
-    {
-        return $this->morphMany(Upload::class, 'uploadable');
-    }
-
-    /**
-     * Returns the upload relation of image type.
-     *
-     * @return MorphOne
-     */
-    public function image(): MorphOne
-    {
-        return $this->morphOne(Upload::class, 'uploadable')
-            ->where(function ($query) {
-                $query->whereIn('extension', $mimes = $this->getImageMimes())
-                    ->orWhereIn('type', $mimes);
-            });
-    }
-
-    /**
-     * Returns the upload relation of image type.
-     *
-     * @return MorphMany
-     */
-    public function images(): MorphMany
-    {
-        return $this->morphMany(Upload::class, 'uploadable')
-            ->where(function ($query) {
-                $query->whereIn('extension', $mimes = $this->getImageMimes())
-                    ->orWhereIn('type', $mimes);
-            });
-    }
-
-    /**
-     * Returns the upload relation of video type.
-     *
-     */
-    public function video() : MorphOne
-    {
-        return $this->morphOne(Upload::class, 'uploadable')
-            ->where(function ($query) {
-                $query->whereIn('extension', $mimes = $this->getVideoMimes())
-                    ->orWhereIn('type', $mimes);
-            });
-    }
-
-    /**
-     * Returns the upload relation of video type.
-     *
-     * @return MorphMany
-     */
-    public function videos() : MorphMany
-    {
-        return $this->morphMany(Upload::class, 'uploadable')
-            ->where(function ($query) {
-                $query->whereIn('extension', $mimes = $this->getVideoMimes())
-                    ->orWhereIn('type', $mimes);
-            });
-    }
-
-    /**
-     * Returns the upload relation of type that is not image or video.
-     *
-     * @return MorphOne
-     */
-    public function document() : MorphOne
-    {
-        return $this->morphOne(Upload::class, 'uploadable')
-            ->where(function ($query) {
-                $query->whereIn('extension', $mimes = $this->getDocumentMimes())
-                    ->orWhereIn('type', $mimes);
-            });
-    }
-
-    /**
-     * Returns the upload relation of type that is not image or video.
-     *
-     * @return MorphMany
-     */
-    public function documents() : MorphMany
-    {
-        return $this->morphMany(Upload::class, 'uploadable')
-            ->where(function ($query) {
-                $query->whereIn('extension', $mimes = $this->getDocumentMimes())
-                    ->orWhereIn('type', $mimes);
-            });
-    }
-
-    /**
-     * Add or modify rules without having to rewrite the entire rule.
-     *
-     * @return array<string, string|array>
-     */
-    protected function uploadRules() : array
-    {
-        return [];
-    }
-
-    /**
-     * Add or modify rules' messages.
-     *
-     * @return array<string, string>
-     */
-    protected function uploadRulesMessages() : array
-    {
-        return [];
-    }
-
-    protected function getUploadRules() : array
-    {
-        return [
-            'document'      => ['sometimes', 'file', $documentMimesRule = $this->getDocumentMimesRule()],
-            'documents.*'   => ['sometimes', 'file', $documentMimesRule],
-            'image'         => ['sometimes', 'image', $imageMimesRule = $this->getImageMimesRule()],
-            'images.*'      => ['sometimes', 'image', $imageMimesRule],
-            'video'         => ['sometimes', $videoMimesRule = $this->getVideoMimesRule()],
-            'videos.*'      => ['sometimes', $videoMimesRule],
-            ...$this->uploadRules()
-        ];
-    }
-
-    protected function getImageMimesRule() : string
-    {
-        return 'mimes:' . implode(',', $this->getImageMimes());
-    }
-
-    protected function getImageMimes() : array
-    {
-        return config('uploadable.mimes.image');
-    }
-
-    protected function getVideoMimesRule() : string
-    {
-        return 'mimes:' . implode(',', $this->getVideoMimes());
-    }
-
-    protected function getVideoMimes() : array
-    {
-        return config('uploadable.mimes.video');
-    }
-    protected function getDocumentMimesRule() : string
-    {
-        return 'mimes:' . implode(',', $this->getDocumentMimes());
-    }
-
-    protected function getDocumentMimes() : array
-    {
-        return config('uploadable.mimes.document');
     }
 
     public function getUploads() : array
@@ -280,10 +111,10 @@ trait HasUpload
     }
 
     /**
-     * Since the upload process only happens when a model is created or updated,
-     * you can call this method to process the uploads manually.
-     * This is when the way you create or update the model doesn't trigger the `created` nor `updated` event.
-     * Note: Only call this method when you are sure that the `created` or `updated` event is not triggered. Otherwise, it will cause duplicate uploads.
+     * Since the upload process only happens when a model is created,
+     * you can call this method to create the uploads manually.
+     * Note: Only call this method when you are sure that the `created` event was not triggered.
+     * Otherwise, it might cause duplicate uploads, especially when `delete_previous_uploads` is not enabled.
      *
      * @return void
      */
@@ -293,10 +124,10 @@ trait HasUpload
     }
 
     /**
-     * Since the upload process only happens when a model is created or updated,
-     * you can call this method to process the uploads manually.
-     * This is when you want to add new uploads into a model, but you didn't actually update the model.
-     * Note: Only call this method when you are sure that the `created` or `updated` event is not triggered. Otherwise, it will cause duplicate uploads.
+     * Since the upload process only happens when a model is updated,
+     * you can call this method to update the uploads manually.
+     * Note: Only call this method when you are sure that the `updated` event was not triggered.
+     * Otherwise, it might cause duplicate uploads, especially when `delete_previous_uploads` is not enabled.
      *
      * @return void
      */
