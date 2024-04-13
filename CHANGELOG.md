@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Although we try to follow the semantic versioning, breaking changes until v1.0.0 may release in minor versions.
 This is to avoid jumping to v1.0.0 too soon while the package is still in development.
 
+## [Unreleased]
+
+### Changed
+- https://github.com/nadlambino/laravel-uploadable/commit/e0ba20c891d8042b57db334cad0f1b08980579dd Change the options key names
+- https://github.com/nadlambino/laravel-uploadable/commit/01992e68214ea8bd36f168a9cc3fc1574a8d655c Amend how deleting of files is handled
+
+### Added
+- https://github.com/nadlambino/laravel-uploadable/commit/10b2d793206f3b556a6007522d237c655a9c11b4 Configurable rollback feature
+- https://github.com/nadlambino/laravel-uploadable/commit/75db1aaec4ae9bfb9570a4e927c17f58a21da428 Configurable validation skipping
+
 ## [v0.5.1] - 2024-04-10
 
 ### Fixed
