@@ -17,6 +17,7 @@ This is to avoid jumping to v1.0.0 too soon while the package is still in develo
 ### Added
 - https://github.com/nadlambino/laravel-uploadable/commit/10b2d793206f3b556a6007522d237c655a9c11b4 Configurable rollback feature
 - https://github.com/nadlambino/laravel-uploadable/commit/75db1aaec4ae9bfb9570a4e927c17f58a21da428 Configurable validation skipping
+- https://github.com/nadlambino/laravel-uploadable/commit/01b4d4e394daf864f2f4c072e505c4ef9a447100 Configurable queue on the go
 
 ## [v0.5.1] - 2024-04-10
 
