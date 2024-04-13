@@ -37,7 +37,12 @@ trait HasUpload
 
     /**
      * Whether to validate the uploads or not.
-     * Initially set to null to allow the package to use the default value from the config file.
+     * The reason why it's initialized to null is that this variable is only used in this trait.
+     * For example, you set the validate to true in your config, then you do `Post::validateUploads(false)`
+     * in your controller then call the `Post::create($request->validated())` method.
+     * What will happen is that the call for `validateUploads` won't take effect because the `create` method will boot up the trait
+     * and the `validateUploads` method will be called in the `bootHasUpload` method which will override the value you passed in the `validateUploads` method.
+     * So, to amend this, I made the `validateUploads` variable nullable so when it's already set, then we can use that value when the trait is booted.
      *
      * @var bool|null $validateUploads
      */
