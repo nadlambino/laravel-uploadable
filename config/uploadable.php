@@ -9,12 +9,9 @@ return [
     'delete_model_on_upload_fail' => true,
 
     /**
-     * Delete all the file uploads when the uploadable model is deleted.
-     */
-    'delete_uploads_on_model_delete' => true,
-
-    /**
-     * Force delete all the uploads data when the uploadable model is deleted.
+     * By default, uploads are soft deleted.
+     * Force delete all the uploads associated to the uploadable model when it's deleted.
+     * When this is set to true, the uploaded file will also be deleted, otherwise, it will be kept for model restoration.
      */
     'force_delete_uploads' => true,
 
