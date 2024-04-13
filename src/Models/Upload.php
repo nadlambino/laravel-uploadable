@@ -20,6 +20,13 @@ class Upload extends Model
         'type',
     ];
 
+    protected static function booted() : void
+    {
+        static::forceDeleted(function (Upload $upload) {
+            app(Uploadable::class)->delete($upload->path);
+        });
+    }
+
     public function uploadable() : MorphTo
     {
         return $this->morphTo();

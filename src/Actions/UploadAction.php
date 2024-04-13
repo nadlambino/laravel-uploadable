@@ -185,10 +185,7 @@ class UploadAction
             $this->model->uploads()
                 ->whereNotIn('id', $this->uploadedFileIds)
                 ->get()
-                ->each(function (Upload $upload) use ($deleteMethod) {
-                    $this->uploadable->delete($upload->path);
-                    $upload->$deleteMethod();
-                });
+                ->each(fn($upload) => $upload->$deleteMethod());
         }
     }
 

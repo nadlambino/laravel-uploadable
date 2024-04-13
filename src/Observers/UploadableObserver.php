@@ -131,16 +131,8 @@ readonly class UploadableObserver
         try {
             DB::beginTransaction();
 
-            if (config('uploadable.delete_uploads_on_model_delete') === true) {
-                $paths = $model->uploads->pluck('path')->toArray();
-
-                foreach ($paths as $path) {
-                    $this->uploadable->delete($path);
-                }
-            }
-
             $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
-            $model->uploads()->$deleteMethod();
+            $model->uploads()->get()->each(fn($upload) => $upload->$deleteMethod());
 
             DB::commit();
         } catch (Exception $exception) {
