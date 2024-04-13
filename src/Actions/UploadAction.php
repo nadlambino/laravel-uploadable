@@ -181,7 +181,7 @@ class UploadAction
     {
         $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
 
-        if (Arr::get($this->options, 'delete_previous_uploads', false) && count($this->uploadedFileIds) > 0) {
+        if (Arr::get($this->options, 'delete_previous_uploads') && count($this->uploadedFileIds) > 0) {
             $this->model->uploads()
                 ->whereNotIn('id', $this->uploadedFileIds)
                 ->get()
@@ -244,10 +244,16 @@ class UploadAction
      */
     private function undoChangesFromUploadableModel(Model $model) : void
     {
-        $attributes = $model->getOriginal();
-        $model->fresh()
-            ->forceFill($attributes)
-            ->updateQuietly();
+        $isOnQueue = Arr::get($this->options, 'is_on_queue');
+
+        if (
+            ($isOnQueue && Arr::get($this->options, 'rollback_model_on_queue_upload_fail')) ||
+            (! $isOnQueue && Arr::get($this->options, 'rollback_model_on_upload_fail'))
+        ) {
+            $model->fresh()
+                ->forceFill(Arr::get($this->options, 'original_attributes'))
+                ->updateQuietly();
+        }
     }
 
     /**
@@ -260,11 +266,11 @@ class UploadAction
      */
     private function deleteUploadableModel(Model $model, bool $forced = false) : void
     {
-        $isOnQueue = config('uploadable.upload_on_queue_using') !== null;
+        $isOnQueue = Arr::get($this->options, 'is_on_queue');
 
         if (
-            ($isOnQueue && config('uploadable.delete_model_on_queue_upload_fail') === true) ||
-            (! $isOnQueue && config('uploadable.delete_model_on_upload_fail') === true) ||
+            ($isOnQueue && Arr::get($this->options, 'delete_model_on_queue_upload_fail')) ||
+            (! $isOnQueue && Arr::get($this->options, 'delete_model_on_upload_fail')) ||
             $forced === true
         ) {
             DB::table($model->getTable())

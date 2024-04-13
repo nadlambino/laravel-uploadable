@@ -9,11 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use NadLambino\Uploadable\Jobs\ProcessUploadJob;
 use NadLambino\Uploadable\Actions\UploadAction;
-use NadLambino\Uploadable\Uploadable;
 
 readonly class UploadableObserver
 {
-    public function __construct(private Uploadable $uploadable, private UploadAction $uploadAction)
+    public function __construct(private UploadAction $uploadAction)
     {
     }
 
@@ -93,6 +92,12 @@ readonly class UploadableObserver
             'delete_previous_uploads' => $class::$deletePreviousUploads ?? false,
             'after_upload_using' => $class::$afterUploadCallback ?? null,
             'dont_upload' => $class::$dontUpload ?? false,
+            'is_on_queue' => config('uploadable.upload_on_queue_using') !== null,
+            'delete_model_on_upload_fail' => config('uploadable.delete_model_on_upload_fail', true),
+            'delete_model_on_queue_upload_fail' => config('uploadable.delete_model_on_queue_upload_fail', false),
+            'rollback_model_on_upload_fail' => config('uploadable.rollback_model_on_upload_fail', true),
+            'rollback_model_on_queue_upload_fail' => config('uploadable.rollback_model_on_queue_upload_fail', false),
+            'original_attributes' => $model->getOriginal(),
         ];
     }
 
