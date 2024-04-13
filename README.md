@@ -89,7 +89,7 @@ public function uploadRulesMessages() : array
 
 ## Customizing the file name and path
 
-You can customize the file name and path by defining the `getUploadFilename` and `uploadFilePath` methods in your model.
+You can customize the file name and path by defining the `getUploadFilename` and `getUploadPath` methods in your model.
 
 ```php
 public function getUploadFilename(UploadedFile $file) : string

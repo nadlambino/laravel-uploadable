@@ -129,7 +129,7 @@ class UploadAction
         } catch (Exception $exception) {
             DB::rollBack();
             $this->deleteUploadedFiles();
-            $this->undoModelChanges($this->model);
+            $this->rollbackModelChanges($this->model);
 
             throw $exception;
         }
@@ -164,7 +164,7 @@ class UploadAction
      */
     private function afterUpload(Upload $upload) : void
     {
-        $callback = Arr::get($this->options, 'afterUploadUsing');
+        $callback = Arr::get($this->options, 'after_upload_using');
         if ($callback instanceof SerializableClosure || $callback instanceof Closure) {
             $callback($upload, $this->model);
         } else {
@@ -181,7 +181,7 @@ class UploadAction
     {
         $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
 
-        if (Arr::get($this->options, 'deletePreviousUploads', false) && count($this->uploadedFileIds) > 0) {
+        if (Arr::get($this->options, 'delete_previous_uploads', false) && count($this->uploadedFileIds) > 0) {
             $this->model->uploads()
                 ->whereNotIn('id', $this->uploadedFileIds)
                 ->get()
@@ -219,7 +219,7 @@ class UploadAction
     }
 
     /**
-     * Undo the changes made to the model.
+     * Rollback the changes made to the model.
      * If the model was just created, it will be deleted.
      * If the model was updated, it will be updated with the original attributes.
      *
@@ -228,14 +228,14 @@ class UploadAction
      *
      * @return void
      */
-    public function undoModelChanges(Model $model, bool $forced = false) : void
+    public function rollbackModelChanges(Model $model, bool $forced = false) : void
     {
-        if ($model->wasRecentlyCreated === false) {
-            $this->undoChangesFromUploadableModel($model);
+        if ($model->wasRecentlyCreated) {
+            $this->deleteUploadableModel($model, $forced);
             return;
         }
 
-        $this->deleteUploadableModel($model, $forced);
+        $this->undoChangesFromUploadableModel($model);
     }
 
     /**

@@ -48,10 +48,8 @@ readonly class UploadableObserver
     private function processUploads(Model $model, bool $deleteModelOnFail) : void
     {
         try {
-            DB::beginTransaction();
-
             $options = $this->getOptions($model);
-            if ($options['dontUpload'] === true) {
+            if ($options['dont_upload'] === true) {
                 return;
             }
 
@@ -65,11 +63,14 @@ readonly class UploadableObserver
             } else {
                 $this->uploadAction->handle($uploads, $model, $options);
             }
-
-            DB::commit();
         } catch (Exception $exception) {
-            DB::rollBack();
-            $this->uploadAction->undoModelChanges($model, $exception instanceof ValidationException && $deleteModelOnFail);
+            // If the upload fails because of validation errors, rollback the model changes.
+            // Validation happens when we called the `getUploads` method.
+            // The upload process from the upload action is already wrapped with a try-catch block
+            // which does its own rollback. So we don't need to call the rollback here if it's not a validation exception.
+            if ($exception instanceof ValidationException) {
+                $this->uploadAction->rollbackModelChanges($model, $deleteModelOnFail);
+            }
 
             throw $exception;
         }
@@ -77,8 +78,8 @@ readonly class UploadableObserver
 
     /**
      * Get the options for the upload process.
-     * This includes the options that were statically set in the uploadable model which won't be included when the model is serialized.
-     * This is specifically useful when the upload process is queued.
+     * This includes the options that were statically set in the uploadable model which won't be included when the
+     * model is serialized. This is specifically useful when the upload process is queued.
      *
      * @param Model $model The model that owns the uploads.
      *
@@ -89,9 +90,9 @@ readonly class UploadableObserver
         $class = get_class($model);
 
         return [
-            'deletePreviousUploads' => $class::$deletePreviousUploads ?? false,
-            'afterUploadUsing' => $class::$afterUploadCallback ?? null,
-            'dontUpload' => $class::$dontUpload ?? false,
+            'delete_previous_uploads' => $class::$deletePreviousUploads ?? false,
+            'after_upload_using' => $class::$afterUploadCallback ?? null,
+            'dont_upload' => $class::$dontUpload ?? false,
         ];
     }
 
