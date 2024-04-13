@@ -228,8 +228,10 @@ Post::afterUploadUsing(function (Upload $upload, Post $model) use ($request->get
 
 > [!IMPORTANT]
 > 
-> When you're queueing the file upload process, and you're using the `afterUploadUsing` method,
-> make sure that the closure and its dependencies are serializable.
+> Remember, when you're on queue, you are actually running your upload process in a different application instance,
+> so you don't have access to the current application's state like the request object.
+> 
+> Also, make sure that the closure and its dependencies you passed to the `afterUploadUsing` method are serializable.
 
 ## Queueing
 
