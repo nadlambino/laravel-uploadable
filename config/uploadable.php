@@ -3,6 +3,13 @@
 return [
 
     /**
+     * Run the package's own validation rules.
+     * You can set this to false if you want to use your own validation rules
+     * or if you've already validated your uploads from your request.
+     */
+    'validate' => true,
+
+    /**
      * Delete the uploadable model when the upload fails.
      * This will only work for models that are just created.
      */

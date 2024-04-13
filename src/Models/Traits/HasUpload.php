@@ -36,6 +36,14 @@ trait HasUpload
     public static bool $dontUpload = false;
 
     /**
+     * Whether to validate the uploads or not.
+     * Initially set to null to allow the package to use the default value from the config file.
+     *
+     * @var bool|null $validateUploads
+     */
+    public static ?bool $validateUploads = null;
+
+    /**
      * Boot the trait.
      *
      * @return void
@@ -44,6 +52,19 @@ trait HasUpload
     {
         static::observe(UploadableObserver::class);
         static::deletePreviousUploads(config('uploadable.delete_previous_uploads', false));
+        static::validateUploads(static::$validateUploads ?? config('uploadable.validate', true));
+    }
+
+    /**
+     * Configure to validate the uploads or not.
+     *
+     * @param bool $validate Whether to validate the uploads or not.
+     *
+     * @return void
+     */
+    public static function validateUploads(bool $validate = true) : void
+    {
+        static::$validateUploads = $validate;
     }
 
     /**
@@ -56,7 +77,9 @@ trait HasUpload
         $rules = $this->getUploadRules();
         $validatable = array_filter($rules, fn($value) => ! empty($value));
 
-        request()->validate($validatable, $this->uploadRulesMessages());
+        if ($this::$validateUploads) {
+            request()->validate($validatable, $this->uploadRulesMessages());
+        }
 
         $fields = collect($rules)
             ->keys()
