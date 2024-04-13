@@ -49,6 +49,14 @@ trait HasUpload
     public static ?bool $validateUploads = null;
 
     /**
+     * The queue to use when uploading files.
+     * If null, the upload will not be queued.
+     *
+     * @var string|null $uploadOnQueue
+     */
+    public static ?string $uploadOnQueue = null;
+
+    /**
      * Boot the trait.
      *
      * @return void
@@ -58,6 +66,19 @@ trait HasUpload
         static::observe(UploadableObserver::class);
         static::deletePreviousUploads(config('uploadable.delete_previous_uploads', false));
         static::validateUploads(static::$validateUploads ?? config('uploadable.validate', true));
+        static::uploadOnQueue(static::$uploadOnQueue ?? config('uploadable.upload_on_queue_using'));
+    }
+
+    /**
+     * Configure to upload the files on a queue.
+     *
+     * @param string|null $queue The queue to use when uploading files.
+     *
+     * @return void
+     */
+    public static function uploadOnQueue(string|null $queue) : void
+    {
+        static::$uploadOnQueue = $queue;
     }
 
     /**

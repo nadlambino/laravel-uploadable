@@ -55,10 +55,10 @@ readonly class UploadableObserver
             /** @var UploadedFile[] $uploads */
             $uploads = $model->getUploads();
 
-            if (($queue = config('uploadable.upload_on_queue_using')) !== null) {
+            if ($options['queue'] !== null) {
                 $paths = $this->uploadTempFiles($uploads);
 
-                ProcessUploadJob::dispatch($paths, $model, $options)->onQueue($queue);
+                ProcessUploadJob::dispatch($paths, $model, $options)->onQueue($options['queue']);
             } else {
                 $this->uploadAction->handle($uploads, $model, $options);
             }
@@ -89,15 +89,15 @@ readonly class UploadableObserver
         $class = get_class($model);
 
         return [
-            'delete_previous_uploads' => $class::$deletePreviousUploads ?? false,
+            'original_attributes' => $model->getOriginal(),
+            'queue' => $class::$uploadOnQueue ?? config('uploadable.upload_on_queue_using'),
             'after_upload_using' => $class::$afterUploadCallback ?? null,
             'dont_upload' => $class::$dontUpload ?? false,
-            'is_on_queue' => config('uploadable.upload_on_queue_using') !== null,
+            'delete_previous_uploads' => $class::$deletePreviousUploads ?? config('uploadable.delete_previous_uploads', false),
             'delete_model_on_upload_fail' => config('uploadable.delete_model_on_upload_fail', true),
             'delete_model_on_queue_upload_fail' => config('uploadable.delete_model_on_queue_upload_fail', false),
             'rollback_model_on_upload_fail' => config('uploadable.rollback_model_on_upload_fail', true),
             'rollback_model_on_queue_upload_fail' => config('uploadable.rollback_model_on_queue_upload_fail', false),
-            'original_attributes' => $model->getOriginal(),
         ];
     }
 

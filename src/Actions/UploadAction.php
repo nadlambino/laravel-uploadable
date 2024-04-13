@@ -244,7 +244,7 @@ class UploadAction
      */
     private function undoChangesFromUploadableModel(Model $model) : void
     {
-        $isOnQueue = Arr::get($this->options, 'is_on_queue');
+        $isOnQueue = Arr::get($this->options, 'queue') !== null;
 
         if (
             ($isOnQueue && Arr::get($this->options, 'rollback_model_on_queue_upload_fail')) ||
@@ -266,7 +266,7 @@ class UploadAction
      */
     private function deleteUploadableModel(Model $model, bool $forced = false) : void
     {
-        $isOnQueue = Arr::get($this->options, 'is_on_queue');
+        $isOnQueue = Arr::get($this->options, 'queue') !== null;
 
         if (
             ($isOnQueue && Arr::get($this->options, 'delete_model_on_queue_upload_fail')) ||
