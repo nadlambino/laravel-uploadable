@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Although we try to follow the semantic versioning, breaking changes until v1.0.0 may release in minor versions.
 This is to avoid jumping to v1.0.0 too soon while the package is still in development.
 
+## [Unreleased] - 2024-04-27
+
+### Fixed
+- https://github.com/nadlambino/laravel-uploadable/commit/c574cd7c64b30704e394522d79329d4d1ad9b1e4 Rollback changes when serialization error occurs
+
 ## [v0.6.1] - 2024-04-14
 
 ### Changed
