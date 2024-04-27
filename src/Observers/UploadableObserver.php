@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use NadLambino\Uploadable\Jobs\ProcessUploadJob;
 use NadLambino\Uploadable\Actions\UploadAction;
+use NadLambino\Uploadable\Exceptions\UnserializableException;
 
 readonly class UploadableObserver
 {
@@ -58,16 +59,15 @@ readonly class UploadableObserver
             if ($options['queue'] !== null) {
                 $paths = $this->uploadTempFiles($uploads);
 
-                ProcessUploadJob::dispatch($paths, $model, $options)->onQueue($options['queue']);
+                $this->handleQueuedUploads($model, $paths, $options);
             } else {
                 $this->uploadAction->handle($uploads, $model, $options);
             }
         } catch (Exception $exception) {
-            // If the upload fails because of validation errors, rollback the model changes.
-            // Validation happens when we called the `getUploads` method.
-            // The upload process from the upload action is already wrapped with a try-catch block
-            // which does its own rollback. So we don't need to call the rollback here if it's not a validation exception.
-            if ($exception instanceof ValidationException) {
+            // If the upload fails because of validation or serialization error, rollback the model changes.
+            // The upload action already does its own rollback and we don't want to do it twice.
+            // So we only call the rollback if the exception is validation or serialization error.
+            if ($exception instanceof ValidationException || $exception instanceof UnserializableException) {
                 $this->uploadAction->rollbackModelChanges($model, $deleteModelOnFail);
             }
 
@@ -124,6 +124,25 @@ readonly class UploadableObserver
         }
 
         return $paths;
+    }
+
+    /**
+     * Handles the queued upload.
+     *
+     * @param Model $model The model that owns the uploads.
+     * @param array $paths The paths to upload.
+     * @param array $options The options for the upload process.
+     *
+     * @return void
+     * @throws UnserializableException
+     */
+    private function handleQueuedUploads(Model $model, array $paths, array $options) : void
+    {
+        try {
+            ProcessUploadJob::dispatch($paths, $model, $options)->onQueue($options['queue']);
+        } catch (Exception $exception) {
+            throw new UnserializableException($exception->getMessage());
+        }
     }
 
     /**
