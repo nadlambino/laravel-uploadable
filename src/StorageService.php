@@ -71,7 +71,6 @@ class StorageService implements StorageContract
      */
     public function delete(string $path): bool
     {
-        // TODO: Implement delete() method.
-        return false;
+        return $this->filesystem->delete($path);
     }
 }

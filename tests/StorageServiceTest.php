@@ -27,3 +27,8 @@ it('can get the file URL', function() {
 it('can get the temporary URL of a file', function() {
     expect(Storage::temporaryUrl($this->fullpath))->not->toBeNull();
 });
+
+it('can delete a file', function () {
+    expect(Storage::delete($this->fullpath))->toBeTrue();
+    expect(Storage::exists($this->fullpath))->toBeFalse();
+});
