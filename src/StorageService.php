@@ -41,8 +41,17 @@ class StorageService implements StorageContract
      */
     public function url(string $path): ?string
     {
-        // TODO: Implement url() method.
-        return '';
+        $url = $this->filesystem->url(trim($path, DIRECTORY_SEPARATOR));
+        $disk = config('filesystem.default', 'local');
+        $host = config("filesystem.disks.$disk.url");
+
+        if (! isset($host)) {
+            return $url;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+
+        return $host.$path;
     }
 
     /**

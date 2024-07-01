@@ -3,23 +3,23 @@
 use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Facades\Storage;
 
-it('can upload a file', function () {
+beforeEach(function () {
     $file = UploadedFile::fake()->image('avatar.jpg');
-    $fullpath = Storage::upload($file, 'users', 'avatar');
+    $this->fullpath = Storage::upload($file);
+});
 
-    expect($fullpath)->not->toBeNull();
+it('can upload a file', function () {
+    expect($this->fullpath)->not->toBeNull();
 });
 
 it('can check if a file exists', function () {
-    $file = UploadedFile::fake()->image('avatar.jpg');
-    $fullpath = Storage::upload($file, 'users', 'avatar');
-
-    expect(Storage::exists($fullpath))->toBeTrue();
+    expect(Storage::exists($this->fullpath))->toBeTrue();
 });
 
 it('can get the file contents', function () {
-    $file = UploadedFile::fake()->image('avatar.jpg');
-    $fullpath = Storage::upload($file, 'users', 'avatar');
+    expect(Storage::get($this->fullpath))->not->toBeNull();
+});
 
-    expect(Storage::get($fullpath))->not->toBeNull();
+it('can get the file URL', function() {
+    expect(Storage::url($this->fullpath))->not->toBeNull();
 });
