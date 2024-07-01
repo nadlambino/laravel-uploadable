@@ -23,3 +23,7 @@ it('can get the file contents', function () {
 it('can get the file URL', function() {
     expect(Storage::url($this->fullpath))->not->toBeNull();
 });
+
+it('can get the temporary URL of a file', function() {
+    expect(Storage::temporaryUrl($this->fullpath))->not->toBeNull();
+});

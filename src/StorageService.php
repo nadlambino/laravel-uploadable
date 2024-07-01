@@ -59,8 +59,11 @@ class StorageService implements StorageContract
      */
     public function temporaryUrl(string $path, int $expiration = 60, array $options = []): ?string
     {
-        // TODO: Implement temporaryUrl() method.
-        return '';
+        try {
+            return $this->filesystem->temporaryUrl($path, now()->addMinutes($expiration), $options);
+        } catch (\Exception) {
+            return $this->url($path);
+        }
     }
 
     /**
