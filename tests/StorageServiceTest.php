@@ -20,6 +20,14 @@ it('can upload a file with a custom name', function () {
     expect($fullpath)->toContain('custom.jpg');
 });
 
+it('can upload a file with a custom path', function () {
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file, 'custom');
+
+    expect($fullpath)->not->toBeNull();
+    expect($fullpath)->toContain('custom');
+});
+
 it('can check if a file exists', function () {
     expect(Storage::exists($this->fullpath))->toBeTrue();
 });
