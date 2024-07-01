@@ -16,3 +16,10 @@ it('can check if a file exists', function () {
 
     expect(Storage::exists($fullpath))->toBeTrue();
 });
+
+it('can get the file contents', function () {
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file, 'users', 'avatar');
+
+    expect(Storage::get($fullpath))->not->toBeNull();
+});

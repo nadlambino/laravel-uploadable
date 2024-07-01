@@ -4,19 +4,14 @@ namespace NadLambino\Uploadable;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
+use NadLambino\Uploadable\Contracts\StorageContract;
 
-class StorageService
+class StorageService implements StorageContract
 {
     public function __construct(protected Filesystem $filesystem) { }
 
     /**
-     * Upload a file.
-     *
-     * @param UploadedFile $file The file to upload.
-     * @param string|null $directory The directory to upload the file to.
-     * @param string|null $filename The filename to use.
-     *
-     * @return string|null The path to the uploaded file.
+     * @inheritDoc
      */
     public function upload(UploadedFile $file, ?string $directory = null, ?string $filename = null): ?string
     {
@@ -26,14 +21,45 @@ class StorageService
     }
 
     /**
-     * Check if a file exists at the given path.
-     *
-     * @param string $path The path to the file.
-     *
-     * @return bool
+     * @inheritDoc
      */
     public function exists(string $path): bool
     {
         return $this->filesystem->exists($path);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function get(string $path): ?string
+    {
+        return $this->filesystem->get($path);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function url(string $path): ?string
+    {
+        // TODO: Implement url() method.
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function temporaryUrl(string $path, int $expiration = 60, array $options = []): ?string
+    {
+        // TODO: Implement temporaryUrl() method.
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(string $path): bool
+    {
+        // TODO: Implement delete() method.
+        return false;
     }
 }
