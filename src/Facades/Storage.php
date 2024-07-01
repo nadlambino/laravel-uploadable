@@ -5,12 +5,12 @@ namespace NadLambino\Uploadable\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \NadLambino\Uploadable\FileService
+ * @see \NadLambino\Uploadable\StorageService
  */
-class FileService extends Facade
+class Storage extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return \NadLambino\Uploadable\FileService::class;
+        return \NadLambino\Uploadable\StorageService::class;
     }
 }
