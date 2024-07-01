@@ -10,12 +10,12 @@ interface StorageContract
      * Upload a file.
      *
      * @param UploadedFile $file The file to upload.
-     * @param string|null  $path The path where the file will be stored.
+     * @param string|null  $directory The directory where the file will be stored.
      * @param string|null  $name The name of the file.
      *
      * @return string|null The path where the file was stored.
      */
-    public function upload(UploadedFile $file, ?string $path = null, ?string $name = null) : ?string;
+    public function upload(UploadedFile $file, ?string $directory = null, ?string $name = null) : ?string;
 
     /**
      * Get the file contents.
