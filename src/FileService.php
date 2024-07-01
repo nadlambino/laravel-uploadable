@@ -2,7 +2,4 @@
 
 namespace NadLambino\Uploadable;
 
-class FileService
-{
-
-}
+class FileService {}
