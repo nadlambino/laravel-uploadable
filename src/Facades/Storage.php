@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static ?string url(string $path)
  * @method static ?string temporaryUrl(string $path, int $expiration = 60, array $options = [])
  * @method static bool delete(string $path)
+ *
  * @see \NadLambino\Uploadable\StorageService
  */
 class Storage extends Facade

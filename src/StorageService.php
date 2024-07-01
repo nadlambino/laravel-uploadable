@@ -8,10 +8,10 @@ use NadLambino\Uploadable\Contracts\StorageContract;
 
 class StorageService implements StorageContract
 {
-    public function __construct(protected Filesystem $filesystem) { }
+    public function __construct(protected Filesystem $filesystem) {}
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function upload(UploadedFile $file, ?string $directory = null, ?string $filename = null): ?string
     {
@@ -21,7 +21,7 @@ class StorageService implements StorageContract
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function exists(string $path): bool
     {
@@ -29,7 +29,7 @@ class StorageService implements StorageContract
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function get(string $path): ?string
     {
@@ -37,7 +37,7 @@ class StorageService implements StorageContract
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function url(string $path): ?string
     {
@@ -55,7 +55,7 @@ class StorageService implements StorageContract
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function temporaryUrl(string $path, int $expiration = 60, array $options = []): ?string
     {
@@ -67,7 +67,7 @@ class StorageService implements StorageContract
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function delete(string $path): bool
     {
