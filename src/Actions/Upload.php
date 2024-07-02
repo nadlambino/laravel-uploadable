@@ -80,7 +80,7 @@ class Upload
         } catch (\Exception $exception) {
             DB::rollBack();
 
-            // TODO: Call to delete all the uploaded files when an error occurs
+            $this->deleteUploadedFilesFromStorage();
             // TODO: Call to rollback all the model changes when an error occurs
 
             throw $exception;
@@ -103,6 +103,13 @@ class Upload
             $callback($upload, $this->uploadable);
         } else {
             $this->uploadable->beforeSavingUpload($upload, $this->uploadable);
+        }
+    }
+
+    protected function deleteUploadedFilesFromStorage() : void
+    {
+        foreach ($this->fullpaths as $fullpath) {
+            $this->storage->delete($fullpath);
         }
     }
 }

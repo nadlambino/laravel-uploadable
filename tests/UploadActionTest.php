@@ -3,6 +3,7 @@
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Actions\Upload;
+use NadLambino\Uploadable\Facades\Storage;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
@@ -77,4 +78,30 @@ it('can upload a file and save the upload with additional data using the `before
     uploadFileFor($post);
 
     expect($post->uploads()->first()->tag)->toBe($post->title);
+});
+
+it('should delete the uploaded files in the storage when an error occurs', function () {
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    /** @var Upload $action */
+    $action = app(Upload::class);
+    try {
+        $action->handle(UploadedFile::fake()->image('avatar.jpg'), $post, ['before_saving_upload_using' => TestPost::$beforeSavingUploadCallback]);
+    } catch (\Exception) {}
+
+    $reflectionClass = new ReflectionClass(get_class($action));
+    $property = $reflectionClass->getProperty('fullpaths');
+    $property->setAccessible(true);
+    $fullpaths = $property->getValue($action);
+
+    expect($post->uploads()->count())->toBe(0);
+    expect($fullpaths)->not->toBeEmpty();
+    expect(Storage::exists($fullpaths[0]))->toBeFalse();
 });
