@@ -9,7 +9,7 @@ use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomPath;
 
-function uploadFileFor(Model $model, array|UploadedFile $files = null, array $options = [])
+function uploadFileFor(Model $model, array|UploadedFile|null $files = null, array $options = [])
 {
     if ($files === null) {
         $files = UploadedFile::fake()->image('avatar.jpg');
