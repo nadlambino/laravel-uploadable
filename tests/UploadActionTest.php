@@ -20,7 +20,7 @@ it('can upload a file for a given model', function () {
     expect($post->uploads()->first())->not->toBeNull();
 });
 
-it('can upload a file for a given model with custom filename', function() {
+it('can upload a file for a given model with custom filename', function () {
     $file = UploadedFile::fake()->image('avatar.jpg');
     $post = new TestPostWithCustomFilename();
     $post->title = fake()->sentence();
@@ -34,7 +34,7 @@ it('can upload a file for a given model with custom filename', function() {
     expect($post->uploads()->first()->name)->toBe($file->getClientOriginalName());
 });
 
-it('can upload a file for a given model with custom path', function() {
+it('can upload a file for a given model with custom path', function () {
     $file = UploadedFile::fake()->image('avatar.jpg');
     $post = new TestPostWithCustomPath();
     $post->title = fake()->sentence();

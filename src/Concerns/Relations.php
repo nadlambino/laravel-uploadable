@@ -13,7 +13,7 @@ trait Relations
      *
      * @return MorphOne The upload relation.
      */
-    public function upload() : MorphOne
+    public function upload(): MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable');
     }
@@ -23,7 +23,7 @@ trait Relations
      *
      * @return MorphMany The upload relation.
      */
-    public function uploads() : MorphMany
+    public function uploads(): MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable');
     }
