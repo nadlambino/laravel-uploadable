@@ -5,6 +5,7 @@ namespace NadLambino\Uploadable\Actions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Laravel\SerializableClosure\SerializableClosure;
 use NadLambino\Uploadable\Contracts\StorageContract;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
@@ -21,12 +22,12 @@ class Upload
 
     public function __construct(private StorageContract $storage) {}
 
-    public function handle(array|UploadedFile $files, Model $uploadable, array $options = [])
+    public function handle(array|UploadedFile|string $files, Model $uploadable, array $options = [])
     {
         $this->uploadable = $uploadable;
         $this->options = $options;
 
-        if ($files instanceof UploadedFile) {
+        if (! is_array($files)) {
             $files = [$files];
         }
 
@@ -72,7 +73,7 @@ class Upload
             $upload->uploadable()->associate($this->uploadable);
             $upload->save();
 
-            // TOOD: Call to delete temporary files if there are any
+            $this->deleteTemporaryFile($file);
 
             DB::commit();
 
@@ -89,7 +90,7 @@ class Upload
 
     private function getUploadedFile(string $file): UploadedFile
     {
-        $tempDisk = config('uploadable.temp_disk', 'local');
+        $tempDisk = config('uploadable.temporary_disk', 'local');
         $root = config("filesystems.disks.$tempDisk.root");
 
         return new UploadedFile($root.DIRECTORY_SEPARATOR.$file, basename($file));
@@ -103,6 +104,13 @@ class Upload
             $callback($upload, $this->uploadable);
         } else {
             $this->uploadable->beforeSavingUpload($upload, $this->uploadable);
+        }
+    }
+
+    private function deleteTemporaryFile(UploadedFile|string $file) : void
+    {
+        if (($file instanceof UploadedFile) === false) {
+            Storage::disk(config('uploadable.temp_disk', 'local'))->delete($file);
         }
     }
 

@@ -100,7 +100,7 @@ return [
     | is where files are stored before being processed.
     |
     */
-    'temp_disk' => 'local',
+    'temporary_disk' => 'local',
 
     /*
     |--------------------------------------------------------------------------

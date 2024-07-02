@@ -205,4 +205,20 @@ it('should rollback the updated uploadable model when an error occurs', function
     expect($post->title)->not->toBe($newTitle);
 });
 
+it('can upload a file that is uploaded in temporary disk first', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $path = $file->store('tmp', config('uploadable.temporary_disk', 'local'));
+
+    /** @var Upload $action */
+    $action = app(Upload::class);
+    $action->handle($path, $post);
+
+    expect($post->uploads()->first())->not->toBeNull();
+});
+
 // TODO: test the deletion and rollback of uploadable model when an error occurs on queue
