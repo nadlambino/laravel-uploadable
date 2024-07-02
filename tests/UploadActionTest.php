@@ -255,4 +255,10 @@ it('should replace the previous file with the new one', function () {
     expect($newUpload->original_name)->toContain('avatar2.jpg');
 });
 
+it('should matched the model\'s default options and the uploadable config', function () {
+    expect(TestPost::$replacePreviousUploads)->toBe(config('uploadable.replace_previous_uploads'));
+    expect(TestPost::$validateUploads)->toBe(config('uploadable.validate'));
+    expect(TestPost::$uploadOnQueue)->toBe(config('uploadable.upload_on_queue'));
+});
+
 // TODO: test the deletion and rollback of uploadable model when an error occurs on queue

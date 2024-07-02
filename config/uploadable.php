@@ -67,7 +67,7 @@ return [
     | processed immediately. Otherwise, files are queued and processed.
     |
     */
-    'upload_on_queue_using' => null,
+    'upload_on_queue' => null,
 
     /*
     |--------------------------------------------------------------------------
