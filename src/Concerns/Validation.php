@@ -9,7 +9,7 @@ trait Validation
      *
      * @return array<string, string|array> The rules.
      */
-    protected function uploadRules() : array
+    protected function uploadRules(): array
     {
         return [];
     }
@@ -19,7 +19,7 @@ trait Validation
      *
      * @return array<string, string> The messages.
      */
-    protected function uploadRulesMessages() : array
+    protected function uploadRulesMessages(): array
     {
         return [];
     }
@@ -29,15 +29,15 @@ trait Validation
      *
      * @return array<string, string|array> The rules.
      */
-    protected function getUploadRules() : array
+    protected function getUploadRules(): array
     {
         return $this->uploadRules() + [
-            'document'      => ['sometimes', 'file', $documentMimesRule = $this->getDocumentMimesRule()],
-            'documents.*'   => ['sometimes', 'file', $documentMimesRule],
-            'image'         => ['sometimes', 'image', $imageMimesRule = $this->getImageMimesRule()],
-            'images.*'      => ['sometimes', 'image', $imageMimesRule],
-            'video'         => ['sometimes', $videoMimesRule = $this->getVideoMimesRule()],
-            'videos.*'      => ['sometimes', $videoMimesRule],
+            'document' => ['sometimes', 'file', $documentMimesRule = $this->getDocumentMimesRule()],
+            'documents.*' => ['sometimes', 'file', $documentMimesRule],
+            'image' => ['sometimes', 'image', $imageMimesRule = $this->getImageMimesRule()],
+            'images.*' => ['sometimes', 'image', $imageMimesRule],
+            'video' => ['sometimes', $videoMimesRule = $this->getVideoMimesRule()],
+            'videos.*' => ['sometimes', $videoMimesRule],
         ];
     }
 
@@ -46,9 +46,9 @@ trait Validation
      *
      * @return string The rule.
      */
-    protected function getImageMimesRule() : string
+    protected function getImageMimesRule(): string
     {
-        return 'mimes:' . implode(',', $this->getImageMimes());
+        return 'mimes:'.implode(',', $this->getImageMimes());
     }
 
     /**
@@ -56,7 +56,7 @@ trait Validation
      *
      * @return array<string> The mimes.
      */
-    protected function getImageMimes() : array
+    protected function getImageMimes(): array
     {
         return config('uploadable.mimes.image');
     }
@@ -66,9 +66,9 @@ trait Validation
      *
      * @return string The rule.
      */
-    protected function getVideoMimesRule() : string
+    protected function getVideoMimesRule(): string
     {
-        return 'mimes:' . implode(',', $this->getVideoMimes());
+        return 'mimes:'.implode(',', $this->getVideoMimes());
     }
 
     /**
@@ -76,7 +76,7 @@ trait Validation
      *
      * @return array<string> The mimes.
      */
-    protected function getVideoMimes() : array
+    protected function getVideoMimes(): array
     {
         return config('uploadable.mimes.video');
     }
@@ -86,9 +86,9 @@ trait Validation
      *
      * @return string The rule.
      */
-    protected function getDocumentMimesRule() : string
+    protected function getDocumentMimesRule(): string
     {
-        return 'mimes:' . implode(',', $this->getDocumentMimes());
+        return 'mimes:'.implode(',', $this->getDocumentMimes());
     }
 
     /**
@@ -96,7 +96,7 @@ trait Validation
      *
      * @return array<string> The mimes.
      */
-    protected function getDocumentMimes() : array
+    protected function getDocumentMimes(): array
     {
         return config('uploadable.mimes.document');
     }
