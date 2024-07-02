@@ -6,7 +6,7 @@ use Illuminate\Http\UploadedFile;
 
 trait Uploadable
 {
-    use Options, Relations;
+    use Options, Relations, Validation;
 
     public static function bootUploadable(): void
     {
@@ -23,5 +23,26 @@ trait Uploadable
     public function getUploadPath(UploadedFile $file): string
     {
         return $this->getTable().DIRECTORY_SEPARATOR.$this->{$this->getKeyName()};
+    }
+
+    public function getUploads() : array
+    {
+        $rules = $this->getUploadRules();
+
+        /** @var \Illuminate\Http\Request $request */
+        $request = app('request');
+
+        if ($this::$validateUploads) {
+            $validatable = array_filter($rules, fn($value) => ! empty($value));
+            $request->validate($validatable, $this->uploadRulesMessages());
+        }
+
+        $fields = collect($rules)
+            ->keys()
+            ->zip($rules)
+            ->map(fn($pair) => is_numeric($pair[0]) ? $pair[1] : $pair[0])
+            ->all();
+
+        return $request->only($fields);
     }
 }

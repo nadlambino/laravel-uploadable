@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage as FacadesStorage;
 use NadLambino\Uploadable\Actions\Upload;
@@ -271,6 +272,178 @@ it('should not upload the file', function () {
     upload_file_for($post, options: ['dont_upload' => TestPost::$dontUpload]);
 
     expect($post->uploads()->count())->toBe(0);
+});
+
+it('can upload a single file from the request', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar.jpg'),
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $files = $post->getUploads();
+
+    upload_file_for($post, $files);
+
+    expect($post->uploads()->count())->toBe(1);
+});
+
+it('can upload multiple files from the request', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $files = $post->getUploads();
+
+    upload_file_for($post, $files);
+
+    expect($post->uploads()->count())->toBe(2);
+});
+
+it('should validate a single invalid image', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+    $post->getUploads();
+});
+
+it('should validate multiple invalid images', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf')
+        ],
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+    $post->getUploads();
+});
+
+it('should validate a singe invalid video', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'video' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+    $post->getUploads();
+});
+
+it('should validate multiple invalid videos', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'videos' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf')
+        ],
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+    $post->getUploads();
+});
+
+it('should validate a single invalid document', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'document' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+    $post->getUploads();
+});
+
+it('should validate multiple invalid documents', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'documents' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf')
+        ],
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+    $post->getUploads();
+});
+
+it('should skip the validation for a specific uploadable model', function () {
+    $post = new TestPost();
+    $post::validateUploads(false);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
+    ]);
+
+    app()->bind('request', fn() => $request);
+
+    $files = $post->getUploads();
+
+    upload_file_for($post, $files);
+
+    expect($post->uploads()->count())->toBe(1);
 });
 
 // TODO: test the deletion and rollback of uploadable model when an error occurs on queue
