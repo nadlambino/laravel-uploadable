@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage as FacadesStorage;
 use NadLambino\Uploadable\Actions\Upload;
 use NadLambino\Uploadable\Facades\Storage;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
@@ -9,7 +10,7 @@ use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomPath;
 
-function upload_file_for(Model $model, array|UploadedFile|null $files = null, array $options = [])
+function upload_file_for(Model $model, array|UploadedFile|string|null $files = null, array $options = [])
 {
     if ($files === null) {
         $files = UploadedFile::fake()->image('avatar.jpg');
@@ -214,11 +215,23 @@ it('can upload a file that is uploaded in temporary disk first', function () {
     $file = UploadedFile::fake()->image('avatar.jpg');
     $path = $file->store('tmp', config('uploadable.temporary_disk', 'local'));
 
-    /** @var Upload $action */
-    $action = app(Upload::class);
-    $action->handle($path, $post);
+    upload_file_for($post, $path);
 
     expect($post->uploads()->first())->not->toBeNull();
+});
+
+it('should delete the file from the temporary disk after it was successfully uploaded', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $path = $file->store('tmp', config('uploadable.temporary_disk', 'local'));
+
+    upload_file_for($post, $path);
+
+    expect(FacadesStorage::disk(config('uploadable.temporary_disk', 'local'))->exists($path))->toBeFalse();
 });
 
 // TODO: test the deletion and rollback of uploadable model when an error occurs on queue
