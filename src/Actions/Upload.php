@@ -48,6 +48,10 @@ class Upload
         $this->uploadable = $uploadable;
         $this->options = $options;
 
+        if (data_get($this->options, 'dont_upload') === true) {
+            return;
+        }
+
         if (! is_array($files)) {
             $files = [$files];
         }

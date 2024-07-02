@@ -261,4 +261,16 @@ it('should matched the model\'s default options and the uploadable config', func
     expect(TestPost::$uploadOnQueue)->toBe(config('uploadable.upload_on_queue'));
 });
 
+it('should not upload the file', function () {
+    TestPost::dontUpload();
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    upload_file_for($post, options: ['dont_upload' => TestPost::$dontUpload]);
+
+    expect($post->uploads()->count())->toBe(0);
+});
+
 // TODO: test the deletion and rollback of uploadable model when an error occurs on queue
