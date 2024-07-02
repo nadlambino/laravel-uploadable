@@ -120,9 +120,10 @@ it('should not delete the recently created uploadable mdel when an error occurs'
     try {
         uploadFileFor($post, options: [
             'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
-            'delete_model_on_upload_fail' => false
+            'delete_model_on_upload_fail' => false,
         ]);
-    } catch (\Exception) {}
+    } catch (\Exception) {
+    }
 
     expect(TestPost::find($post->id))->not->toBeNull();
 });
@@ -140,9 +141,10 @@ it('should delete the recently created uploadable model when an error occurs', f
     try {
         uploadFileFor($post, options: [
             'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
-            'delete_model_on_upload_fail' => true
+            'delete_model_on_upload_fail' => true,
         ]);
-    } catch (\Exception) {}
+    } catch (\Exception) {
+    }
 
     expect(TestPost::find($post->id))->toBeNull();
 });
@@ -166,7 +168,8 @@ it('should not rollback the updated uploadable model when an error occurs', func
             'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
             'rollback_model_on_upload_fail' => false,
         ]);
-    } catch (\Exception) {}
+    } catch (\Exception) {
+    }
 
     $post = TestPost::find($post->id);
 
@@ -194,7 +197,8 @@ it('should rollback the updated uploadable model when an error occurs', function
             'rollback_model_on_upload_fail' => true,
             'original_attributes' => $originalAttributes,
         ]);
-    } catch (\Exception) {}
+    } catch (\Exception) {
+    }
 
     $post = TestPost::find($post->id);
 

@@ -106,24 +106,25 @@ class Upload
         }
     }
 
-    private function deleteUploadedFilesFromStorage() : void
+    private function deleteUploadedFilesFromStorage(): void
     {
         foreach ($this->fullpaths as $fullpath) {
             $this->storage->delete($fullpath);
         }
     }
 
-    public function rollbackModelChanges(Model $model, bool $forced = false) : void
+    public function rollbackModelChanges(Model $model, bool $forced = false): void
     {
         if ($model->wasRecentlyCreated) {
             $this->deleteUploadableModel($model, $forced);
+
             return;
         }
 
         $this->undoChangesFromUploadableModel($model);
     }
 
-    private function deleteUploadableModel(Model $model, bool $forced = false) : void
+    private function deleteUploadableModel(Model $model, bool $forced = false): void
     {
         $isOnQueue = data_get($this->options, 'queue') !== null;
 
@@ -138,7 +139,7 @@ class Upload
         }
     }
 
-    private function undoChangesFromUploadableModel(Model $model) : void
+    private function undoChangesFromUploadableModel(Model $model): void
     {
         $isOnQueue = data_get($this->options, 'queue') !== null;
 
