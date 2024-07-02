@@ -48,14 +48,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Delete Previous Uploads
+    | Replace Previous Uploads
     |--------------------------------------------------------------------------
     |
-    | Enable deletion of all previous uploads before saving new ones. Deletion
-    | occurs after successful upload of new files.
+    | Determines whether uploaded files should be replaced with new ones. If
+    | false, new files will be uploaded. If true, previous files will be
+    | deleted once the new ones are uploaded.
     |
     */
-    'delete_previous_uploads' => false,
+    'replace_previous_uploads' => false,
 
     /*
     |--------------------------------------------------------------------------
