@@ -14,6 +14,6 @@ class TestPostWithCustomPath extends Model
 
     public function getUploadPath(UploadedFile $file): string
     {
-        return 'custom_path' . DIRECTORY_SEPARATOR;
+        return 'custom_path'.DIRECTORY_SEPARATOR;
     }
 }

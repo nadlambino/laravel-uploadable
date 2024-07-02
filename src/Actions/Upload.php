@@ -11,14 +11,14 @@ use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 class Upload
 {
     protected Model $uploadable;
+
     protected array $options = [];
+
     protected array $fullpaths = [];
+
     protected array $uploadIds = [];
 
-    public function __construct(protected StorageContract $storage)
-    {
-
-    }
+    public function __construct(protected StorageContract $storage) {}
 
     public function handle(array|UploadedFile $files, Model $uploadable, array $options = [])
     {
@@ -86,11 +86,11 @@ class Upload
         }
     }
 
-    protected function getUploadedFile(string $file) : UploadedFile
+    protected function getUploadedFile(string $file): UploadedFile
     {
         $tempDisk = config('uploadable.temp_disk', 'local');
         $root = config("filesystems.disks.$tempDisk.root");
 
-        return new UploadedFile($root . DIRECTORY_SEPARATOR . $file, basename($file));
+        return new UploadedFile($root.DIRECTORY_SEPARATOR.$file, basename($file));
     }
 }
