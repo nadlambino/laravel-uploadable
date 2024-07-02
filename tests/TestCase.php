@@ -47,5 +47,8 @@ class TestCase extends Orchestra
 
         $migration = include __DIR__.'/../database/migrations/0001_01_01_000000_create_uploads_table.php.stub';
         $migration->up();
+
+        $migration = include __DIR__.'/../database/migrations/add_tag_to_uploads_table.php';
+        $migration->up();
     }
 }

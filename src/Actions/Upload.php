@@ -5,6 +5,7 @@ namespace NadLambino\Uploadable\Actions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Laravel\SerializableClosure\SerializableClosure;
 use NadLambino\Uploadable\Contracts\StorageContract;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 
@@ -66,7 +67,7 @@ class Upload
             $upload->size = $uploadedFile->getSize();
             $upload->type = $uploadedFile->getMimeType();
 
-            // TODO: Call to user-defined callback before saving the upload
+            $this->beforeSavingUpload($upload);
 
             $upload->uploadable()->associate($this->uploadable);
             $upload->save();
@@ -92,5 +93,16 @@ class Upload
         $root = config("filesystems.disks.$tempDisk.root");
 
         return new UploadedFile($root.DIRECTORY_SEPARATOR.$file, basename($file));
+    }
+
+    protected function beforeSavingUpload(ModelsUpload $upload)
+    {
+        $callback = data_get($this->options, 'before_saving_upload_using');
+
+        if ($callback instanceof SerializableClosure || $callback instanceof \Closure) {
+            $callback($upload, $this->uploadable);
+        } else {
+            $this->uploadable->beforeSavingUpload($upload, $this->uploadable);
+        }
     }
 }

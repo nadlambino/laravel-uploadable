@@ -6,7 +6,7 @@ use Illuminate\Http\UploadedFile;
 
 trait Uploadable
 {
-    use Relations;
+    use Relations, Options;
 
     public function getUploadFilename(UploadedFile $file): string
     {
