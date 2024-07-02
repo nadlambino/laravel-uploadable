@@ -106,7 +106,7 @@ class Upload
         }
     }
 
-    protected function deleteUploadedFilesFromStorage() : void
+    protected function deleteUploadedFilesFromStorage(): void
     {
         foreach ($this->fullpaths as $fullpath) {
             $this->storage->delete($fullpath);

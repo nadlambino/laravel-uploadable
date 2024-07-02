@@ -94,7 +94,8 @@ it('should delete the uploaded files in the storage when an error occurs', funct
     $action = app(Upload::class);
     try {
         $action->handle(UploadedFile::fake()->image('avatar.jpg'), $post, ['before_saving_upload_using' => TestPost::$beforeSavingUploadCallback]);
-    } catch (\Exception) {}
+    } catch (\Exception) {
+    }
 
     $reflectionClass = new ReflectionClass(get_class($action));
     $property = $reflectionClass->getProperty('fullpaths');
