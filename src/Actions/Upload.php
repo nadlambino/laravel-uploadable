@@ -268,7 +268,7 @@ class Upload
             $this->uploadable->uploads()
                 ->whereNotIn('id', $this->uploadIds)
                 ->get()
-                ->each(fn($upload) => $upload->$deleteMethod());
+                ->each(fn ($upload) => $upload->$deleteMethod());
         }
     }
 }
