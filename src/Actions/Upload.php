@@ -107,7 +107,7 @@ class Upload
         }
     }
 
-    private function deleteTemporaryFile(UploadedFile|string $file) : void
+    private function deleteTemporaryFile(UploadedFile|string $file): void
     {
         if (($file instanceof UploadedFile) === false) {
             Storage::disk(config('uploadable.temp_disk', 'local'))->delete($file);
@@ -169,7 +169,7 @@ class Upload
             $this->uploadable->uploads()
                 ->whereNotIn('id', $this->uploadIds)
                 ->get()
-                ->each(fn($upload) => $upload->$deleteMethod());
+                ->each(fn ($upload) => $upload->$deleteMethod());
         }
     }
 }
