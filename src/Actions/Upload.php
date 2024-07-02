@@ -14,44 +14,34 @@ class Upload
 {
     /**
      * The uploadable model.
-     *
-     * @var Model $uploadable
      */
     private Model $uploadable;
 
     /**
      * Combination of uploadable config and other options.
-     *
-     * @var array $options
      */
     private array $options = [];
 
     /**
      * The full paths of the uploaded files.
-     *
-     * @var array $fullpaths
      */
     private array $fullpaths = [];
 
     /**
      * The ids of the uploaded files.
-     *
-     * @var array $uploadIds
      */
     private array $uploadIds = [];
 
-    public function __construct(private StorageContract $storage) { }
+    public function __construct(private StorageContract $storage) {}
 
     /**
      * Handle the upload process.
      *
-     * @param array|UploadedFile|string $files  The files to upload.
-     *                                          Can be an array of files or a single file.
-     *                                          File can be an instance of Illuminate\Http\UploadedFile or a full path to a file uploaded on the temporary disk.
-     * @param Model $uploadable The model to associate the uploads with.
-     * @param array $options    Combination of uploadable config and other options.
-     *
-     * @return void
+     * @param  array|UploadedFile|string  $files  The files to upload.
+     *                                            Can be an array of files or a single file.
+     *                                            File can be an instance of Illuminate\Http\UploadedFile or a full path to a file uploaded on the temporary disk.
+     * @param  Model  $uploadable  The model to associate the uploads with.
+     * @param  array  $options  Combination of uploadable config and other options.
      */
     public function handle(array|UploadedFile|string $files, Model $uploadable, array $options = []): void
     {
@@ -70,9 +60,7 @@ class Upload
     /**
      * Upload files.
      *
-     * @param array $files The files to upload.
-     *
-     * @return void
+     * @param  array  $files  The files to upload.
      */
     private function uploads(array $files): void
     {
@@ -88,9 +76,7 @@ class Upload
     /**
      * Upload a single file.
      *
-     * @param UploadedFile|string $file The file to upload.
-     *
-     * @return void
+     * @param  UploadedFile|string  $file  The file to upload.
      */
     private function upload(UploadedFile|string $file): void
     {
@@ -136,9 +122,7 @@ class Upload
     /**
      * Get an instance of Illuminate\Http\UploadedFile from a full path.
      *
-     * @param string $file The file to get and wrapped into an instance of Illuminate\Http\UploadedFile.
-     *
-     * @return UploadedFile
+     * @param  string  $file  The file to get and wrapped into an instance of Illuminate\Http\UploadedFile.
      */
     private function getUploadedFile(string $file): UploadedFile
     {
@@ -151,9 +135,7 @@ class Upload
     /**
      * Callback before saving the upload.
      *
-     * @param ModelsUpload $upload The upload model.
-     *
-     * @return void
+     * @param  ModelsUpload  $upload  The upload model.
      */
     private function beforeSavingUpload(ModelsUpload $upload): void
     {
@@ -169,9 +151,7 @@ class Upload
     /**
      * Delete the temporary file.
      *
-     * @param UploadedFile|string $file The file to delete.
-     *
-     * @return void
+     * @param  UploadedFile|string  $file  The file to delete.
      */
     private function deleteTemporaryFile(UploadedFile|string $file): void
     {
@@ -182,8 +162,6 @@ class Upload
 
     /**
      * Delete the uploaded files from the storage.
-     *
-     * @return void
      */
     private function deleteUploadedFilesFromStorage(): void
     {
@@ -195,10 +173,8 @@ class Upload
     /**
      * Rollback the uploadable model's changes.
      *
-     * @param Model $model The model to rollback.
-     * @param bool  $forced Whether the rollback should be forced.
-     *
-     * @return void
+     * @param  Model  $model  The model to rollback.
+     * @param  bool  $forced  Whether the rollback should be forced.
      */
     public function rollbackModelChanges(Model $model, bool $forced = false): void
     {
@@ -214,10 +190,8 @@ class Upload
     /**
      * Delete the uploadable model.
      *
-     * @param Model $model The model to delete.
-     * @param bool  $forced Whether the deletion should be forced.
-     *
-     * @return void
+     * @param  Model  $model  The model to delete.
+     * @param  bool  $forced  Whether the deletion should be forced.
      */
     private function deleteUploadableModel(Model $model, bool $forced = false): void
     {
@@ -237,9 +211,7 @@ class Upload
     /**
      * Undo changes from the uploadable model.
      *
-     * @param Model $model The model to undo changes from.
-     *
-     * @return void
+     * @param  Model  $model  The model to undo changes from.
      */
     private function undoChangesFromUploadableModel(Model $model): void
     {
@@ -257,8 +229,6 @@ class Upload
 
     /**
      * Delete the previous uploads.
-     *
-     * @return void
      */
     private function deletePreviousUploads(): void
     {
