@@ -33,7 +33,7 @@ class Upload
 
         $this->uploads($files);
 
-        // TODO: Delete previous uploads when required
+        $this->deletePreviousUploads();
     }
 
     private function uploads(array $files)
@@ -158,6 +158,18 @@ class Upload
             $model->fresh()
                 ->forceFill(data_get($this->options, 'original_attributes'))
                 ->updateQuietly();
+        }
+    }
+
+    private function deletePreviousUploads(): void
+    {
+        $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
+
+        if (data_get($this->options, 'replace_previous_uploads') && count($this->uploadIds) > 0) {
+            $this->uploadable->uploads()
+                ->whereNotIn('id', $this->uploadIds)
+                ->get()
+                ->each(fn($upload) => $upload->$deleteMethod());
         }
     }
 }

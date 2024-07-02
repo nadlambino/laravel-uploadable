@@ -234,4 +234,25 @@ it('should delete the file from the temporary disk after it was successfully upl
     expect(FacadesStorage::disk(config('uploadable.temporary_disk', 'local'))->exists($path))->toBeFalse();
 });
 
+it('should replace the previous file with the new one', function () {
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $file = UploadedFile::fake()->image('avatar1.jpg');
+    upload_file_for($post, $file);
+
+    $oldUpload = $post->uploads()->first();
+
+    $file = UploadedFile::fake()->image('avatar2.jpg');
+    upload_file_for($post, $file, ['replace_previous_uploads' => true]);
+
+    $newUpload = $post->uploads()->first();
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($oldUpload->id)->not->toBe($newUpload->id);
+    expect($newUpload->original_name)->toContain('avatar2.jpg');
+});
+
 // TODO: test the deletion and rollback of uploadable model when an error occurs on queue
