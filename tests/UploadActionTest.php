@@ -9,7 +9,7 @@ use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomPath;
 
-function uploadFileFor(Model $model, array|UploadedFile|null $files = null, array $options = [])
+function upload_file_for(Model $model, array|UploadedFile|null $files = null, array $options = [])
 {
     if ($files === null) {
         $files = UploadedFile::fake()->image('avatar.jpg');
@@ -26,7 +26,7 @@ it('can upload a file for a given model', function () {
     $post->body = fake()->paragraph();
     $post->save();
 
-    uploadFileFor($post);
+    upload_file_for($post);
 
     expect($post->uploads()->first())->not->toBeNull();
 });
@@ -37,7 +37,7 @@ it('can upload a file for a given model with custom filename', function () {
     $post->body = fake()->paragraph();
     $post->save();
 
-    uploadFileFor($post, $file = UploadedFile::fake()->image('avatar.jpg'));
+    upload_file_for($post, $file = UploadedFile::fake()->image('avatar.jpg'));
 
     expect($post->uploads()->first()->name)->toBe($file->getClientOriginalName());
 });
@@ -48,7 +48,7 @@ it('can upload a file for a given model with custom path', function () {
     $post->body = fake()->paragraph();
     $post->save();
 
-    uploadFileFor($post);
+    upload_file_for($post);
 
     expect($post->uploads()->first()->path)->toContain('custom_path');
 });
@@ -64,7 +64,7 @@ it('can upload a file and save the upload with additional data using the `before
     $post->body = fake()->paragraph();
     $post->save();
 
-    uploadFileFor($post, options: ['before_saving_upload_using' => TestPost::$beforeSavingUploadCallback]);
+    upload_file_for($post, options: ['before_saving_upload_using' => TestPost::$beforeSavingUploadCallback]);
 
     expect($post->uploads()->first()->tag)->toBe($tag);
 });
@@ -75,7 +75,7 @@ it('can upload a file and save the upload with additional data using the `before
     $post->body = fake()->paragraph();
     $post->save();
 
-    uploadFileFor($post);
+    upload_file_for($post);
 
     expect($post->uploads()->first()->tag)->toBe($post->title);
 });
@@ -118,7 +118,7 @@ it('should not delete the recently created uploadable mdel when an error occurs'
     $post->save();
 
     try {
-        uploadFileFor($post, options: [
+        upload_file_for($post, options: [
             'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
             'delete_model_on_upload_fail' => false,
         ]);
@@ -139,7 +139,7 @@ it('should delete the recently created uploadable model when an error occurs', f
     $post->save();
 
     try {
-        uploadFileFor($post, options: [
+        upload_file_for($post, options: [
             'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
             'delete_model_on_upload_fail' => true,
         ]);
@@ -164,7 +164,7 @@ it('should not rollback the updated uploadable model when an error occurs', func
     $post->save();
 
     try {
-        uploadFileFor($post, options: [
+        upload_file_for($post, options: [
             'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
             'rollback_model_on_upload_fail' => false,
         ]);
@@ -192,7 +192,7 @@ it('should rollback the updated uploadable model when an error occurs', function
     $post->save();
 
     try {
-        uploadFileFor($post, options: [
+        upload_file_for($post, options: [
             'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
             'rollback_model_on_upload_fail' => true,
             'original_attributes' => $originalAttributes,
