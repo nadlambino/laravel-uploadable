@@ -11,15 +11,15 @@ use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 
 class Upload
 {
-    protected Model $uploadable;
+    private Model $uploadable;
 
-    protected array $options = [];
+    private array $options = [];
 
-    protected array $fullpaths = [];
+    private array $fullpaths = [];
 
-    protected array $uploadIds = [];
+    private array $uploadIds = [];
 
-    public function __construct(protected StorageContract $storage) {}
+    public function __construct(private StorageContract $storage) {}
 
     public function handle(array|UploadedFile $files, Model $uploadable, array $options = [])
     {
@@ -35,7 +35,7 @@ class Upload
         // TODO: Delete previous uploads when required
     }
 
-    protected function uploads(array $files)
+    private function uploads(array $files)
     {
         foreach ($files as $file) {
             if (is_array($file)) {
@@ -46,7 +46,7 @@ class Upload
         }
     }
 
-    protected function upload(UploadedFile|string $file)
+    private function upload(UploadedFile|string $file)
     {
         try {
             DB::beginTransaction();
@@ -81,13 +81,13 @@ class Upload
             DB::rollBack();
 
             $this->deleteUploadedFilesFromStorage();
-            // TODO: Call to rollback all the model changes when an error occurs
+            $this->rollbackModelChanges($this->uploadable);
 
             throw $exception;
         }
     }
 
-    protected function getUploadedFile(string $file): UploadedFile
+    private function getUploadedFile(string $file): UploadedFile
     {
         $tempDisk = config('uploadable.temp_disk', 'local');
         $root = config("filesystems.disks.$tempDisk.root");
@@ -95,7 +95,7 @@ class Upload
         return new UploadedFile($root.DIRECTORY_SEPARATOR.$file, basename($file));
     }
 
-    protected function beforeSavingUpload(ModelsUpload $upload)
+    private function beforeSavingUpload(ModelsUpload $upload)
     {
         $callback = data_get($this->options, 'before_saving_upload_using');
 
@@ -106,10 +106,49 @@ class Upload
         }
     }
 
-    protected function deleteUploadedFilesFromStorage() : void
+    private function deleteUploadedFilesFromStorage() : void
     {
         foreach ($this->fullpaths as $fullpath) {
             $this->storage->delete($fullpath);
+        }
+    }
+
+    public function rollbackModelChanges(Model $model, bool $forced = false) : void
+    {
+        if ($model->wasRecentlyCreated) {
+            $this->deleteUploadableModel($model, $forced);
+            return;
+        }
+
+        $this->undoChangesFromUploadableModel($model);
+    }
+
+    private function deleteUploadableModel(Model $model, bool $forced = false) : void
+    {
+        $isOnQueue = data_get($this->options, 'queue') !== null;
+
+        if (
+            ($isOnQueue && data_get($this->options, 'delete_model_on_queue_upload_fail')) ||
+            (! $isOnQueue && data_get($this->options, 'delete_model_on_upload_fail')) ||
+            $forced === true
+        ) {
+            DB::table($model->getTable())
+                ->where($model->getKeyName(), $model->{$model->getKeyName()})
+                ->delete();
+        }
+    }
+
+    private function undoChangesFromUploadableModel(Model $model) : void
+    {
+        $isOnQueue = data_get($this->options, 'queue') !== null;
+
+        if (
+            ($isOnQueue && data_get($this->options, 'rollback_model_on_queue_upload_fail')) ||
+            (! $isOnQueue && data_get($this->options, 'rollback_model_on_upload_fail'))
+        ) {
+            $model->fresh()
+                ->forceFill(data_get($this->options, 'original_attributes'))
+                ->updateQuietly();
         }
     }
 }

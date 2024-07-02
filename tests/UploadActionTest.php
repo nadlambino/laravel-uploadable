@@ -105,3 +105,99 @@ it('should delete the uploaded files in the storage when an error occurs', funct
     expect($fullpaths)->not->toBeEmpty();
     expect(Storage::exists($fullpaths[0]))->toBeFalse();
 });
+
+it('should not delete the recently created uploadable mdel when an error occurs', function () {
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    try {
+        uploadFileFor($post, options: [
+            'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
+            'delete_model_on_upload_fail' => false
+        ]);
+    } catch (\Exception) {}
+
+    expect(TestPost::find($post->id))->not->toBeNull();
+});
+
+it('should delete the recently created uploadable model when an error occurs', function () {
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    try {
+        uploadFileFor($post, options: [
+            'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
+            'delete_model_on_upload_fail' => true
+        ]);
+    } catch (\Exception) {}
+
+    expect(TestPost::find($post->id))->toBeNull();
+});
+
+it('should not rollback the updated uploadable model when an error occurs', function () {
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $post = TestPost::find($post->id);
+    $post->title = $newTitle = fake()->sentence();
+    $post->save();
+
+    try {
+        uploadFileFor($post, options: [
+            'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
+            'rollback_model_on_upload_fail' => false,
+        ]);
+    } catch (\Exception) {}
+
+    $post = TestPost::find($post->id);
+
+    expect($post->title)->toBe($newTitle);
+});
+
+it('should rollback the updated uploadable model when an error occurs', function () {
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $post = TestPost::find($post->id);
+    $originalAttributes = $post->getOriginal();
+    $post->title = $newTitle = fake()->sentence();
+    $post->save();
+
+    try {
+        uploadFileFor($post, options: [
+            'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
+            'rollback_model_on_upload_fail' => true,
+            'original_attributes' => $originalAttributes,
+        ]);
+    } catch (\Exception) {}
+
+    $post = TestPost::find($post->id);
+
+    expect($post->title)->not->toBe($newTitle);
+});
+
+// TODO: test the deletion and rollback of uploadable model when an error occurs on queue
