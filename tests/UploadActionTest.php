@@ -716,3 +716,64 @@ it('should not rollback the changes from uploadable model when an error occurs d
 
     expect($post->title)->toBe($newTitle);
 });
+
+it('should delete the files from storage when the uploadable model was deleted', function () {
+    config()->set('uploadable.force_delete_uploads', true);
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    $options = new UploadOptions();
+
+    /** @var Upload $action */
+    $action = app(Upload::class);
+    $action->handle($files, $post, $options);
+
+    $files = $post->uploads()->first();
+
+    $post->delete();
+
+    expect(ModelsUpload::query()->withTrashed()->get())->toBeEmpty();
+    expect(Storage::exists($files->path))->toBeFalse();
+});
+
+it('should not delete the files from storage when the uploadable model was deleted', function () {
+    config()->set('uploadable.force_delete_uploads', false);
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    $options = new UploadOptions();
+
+    /** @var Upload $action */
+    $action = app(Upload::class);
+    $action->handle($files, $post, $options);
+
+    $files = $post->uploads()->first();
+
+    $post->delete();
+
+    expect(ModelsUpload::query()->withTrashed()->get())->not->toBeEmpty();
+    expect(Storage::exists($files->path))->toBeTrue();
+});
+
