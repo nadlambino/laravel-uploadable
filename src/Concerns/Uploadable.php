@@ -49,10 +49,8 @@ trait Uploadable
     /**
      * You can manually create the uploads when you are sure that the `created` event
      * was not triggered. Otherwise, calling this method might duplicate your uploads.
-     *
-     * @return void
      */
-    public function createUploads() : void
+    public function createUploads(): void
     {
         $this::$disableUpload = false;
 
@@ -62,10 +60,8 @@ trait Uploadable
     /**
      * You can manually update the uploads when you are sure that the `updated` event
      * was not triggered. Otherwise, calling this method might duplicate your uploads.
-     *
-     * @return void
      */
-    public function updateUploads() : void
+    public function updateUploads(): void
     {
         $this::$disableUpload = false;
 
@@ -97,7 +93,6 @@ trait Uploadable
      *                                     Can be a single or an array of files.
      *                                     File can be an instance of Illuminate\Http\UploadedFile
      *                                     or a full path to a file uploaded on the temporary disk.
-     *
      * @return $this
      */
     public function uploadFrom(array|UploadedFile|string $files): static
