@@ -59,12 +59,10 @@ trait Uploadable
      * sure that they are already validated. Livewire provides a way to do
      * the validation by using Validation attributes
      *
-     * @param array|UploadedFile $files The files to upload.
-     *                                  Can be a single or an array of files.
-     *                                  File can be an instance of Illuminate\Http\UploadedFile
-     *                                  or a full path to a file uploaded on the temporary disk.
-     *
-     * @return void
+     * @param  array|UploadedFile  $files  The files to upload.
+     *                                     Can be a single or an array of files.
+     *                                     File can be an instance of Illuminate\Http\UploadedFile
+     *                                     or a full path to a file uploaded on the temporary disk.
      */
     public function uploadFrom(array|UploadedFile|string $files): void
     {
