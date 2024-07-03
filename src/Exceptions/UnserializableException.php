@@ -4,6 +4,4 @@ namespace NadLambino\Uploadable\Exceptions;
 
 use Exception;
 
-class UnserializableException extends Exception
-{
-}
+class UnserializableException extends Exception {}

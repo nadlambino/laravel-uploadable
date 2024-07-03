@@ -10,11 +10,17 @@ use Laravel\SerializableClosure\SerializableClosure;
 class UploadOptions
 {
     public readonly bool $deleteModelOnUploadFail;
+
     public readonly bool $deleteModelOnQueueUploadFail;
+
     public readonly bool $forceDeleteUploads;
+
     public readonly bool $rollbackModelOnUploadFail;
+
     public readonly bool $rollbackModelOnQueueUploadFail;
+
     public readonly ?string $uploadOnQueue;
+
     public readonly string $temporaryDisk;
 
     public function __construct(
