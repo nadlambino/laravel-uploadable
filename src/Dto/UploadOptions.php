@@ -45,8 +45,8 @@ class UploadOptions
      * This is to allow setting their default values
      * based on config values.
      *
-     * @param string $name
-     * @param mixed $value
+     * @param  string  $name
+     * @param  mixed  $value
      *
      * @throws \RuntimeException
      */
