@@ -14,6 +14,10 @@ class UploadableServiceProvider extends PackageServiceProvider
     {
         parent::boot();
 
+        $this->publishes([
+            __DIR__ . '/Models/Upload.php' => app_path('Models/Upload.php'),
+        ], 'uploadable-model');
+
         $default = config('filesystems.default', 'public');
         $this->app->bind(StorageContract::class, fn () => new StorageService(Storage::disk($default)));
         $this->app->bind(StorageService::class, fn () => new StorageService(Storage::disk($default)));
@@ -25,7 +29,7 @@ class UploadableServiceProvider extends PackageServiceProvider
             ->name('uploadable')
             ->runsMigrations()
             ->hasConfigFile()
-            ->hasMigration('0001_01_01_000000_create_uploads_table')
+            ->hasMigration('create_uploads_table')
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
                     ->publishMigrations()

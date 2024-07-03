@@ -48,7 +48,7 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
 
-        $migration = include __DIR__.'/../database/migrations/0001_01_01_000000_create_uploads_table.php.stub';
+        $migration = include __DIR__.'/../database/migrations/create_uploads_table.php.stub';
         $migration->up();
 
         $this->setUpAdditionalMigration();
