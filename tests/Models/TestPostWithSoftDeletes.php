@@ -8,7 +8,7 @@ use NadLambino\Uploadable\Concerns\Uploadable;
 
 class TestPostWithSoftDeletes extends Model
 {
-    use Uploadable, SoftDeletes;
+    use SoftDeletes, Uploadable;
 
     protected $table = 'test_posts';
 }
