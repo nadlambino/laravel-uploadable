@@ -21,7 +21,7 @@ trait Options
     /**
      * Whether or not to upload files.
      */
-    public static bool $dontUpload = false;
+    public static bool $disableUpload = false;
 
     /**
      * Whether or not to validate uploads.
@@ -63,9 +63,9 @@ trait Options
      *
      * @param  bool  $upload
      */
-    public static function dontUpload(bool $dontUpload = true): void
+    public static function disableUpload(bool $disableUpload = true): void
     {
-        static::$dontUpload = $dontUpload;
+        static::$disableUpload = $disableUpload;
     }
 
     /**

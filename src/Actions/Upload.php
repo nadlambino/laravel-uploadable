@@ -49,7 +49,7 @@ class Upload
         $this->uploadable = $uploadable;
         $this->options = $options ?? app(UploadOptions::class);
 
-        if ($this->options->dontUpload === true) {
+        if ($this->options->disableUpload === true) {
             return;
         }
 
@@ -200,7 +200,7 @@ class Upload
      */
     private function deleteUploadableModel(Model $model, bool $forced = false): void
     {
-        $isOnQueue = $this->options->queue !== null;
+        $isOnQueue = $this->options->uploadOnQueue !== null;
 
         if (
             ($isOnQueue && $this->options->deleteModelOnQueueUploadFail) ||
@@ -220,7 +220,7 @@ class Upload
      */
     private function undoChangesFromUploadableModel(Model $model): void
     {
-        $isOnQueue = $this->options->queue !== null;
+        $isOnQueue = $this->options->uploadOnQueue !== null;
 
         if (
             ($isOnQueue && $this->options->rollbackModelOnQueueUploadFail) ||

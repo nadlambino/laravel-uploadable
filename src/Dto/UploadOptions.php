@@ -5,29 +5,23 @@ namespace NadLambino\Uploadable\Dto;
 use Laravel\SerializableClosure\SerializableClosure;
 
 /**
- * @property bool $deleteModelOnUploadFail
- * @property bool $deleteModelOnQueueUploadFail
- * @property bool $forceDeleteUploads
- * @property bool $replacePreviousUploads
- * @property bool $rollbackModelOnUploadFail
- * @property bool $rollbackModelOnQueueUploadFail
- * @property string|null $queue
- * @property string $temporaryDisk
+ * @property-read bool $replacePreviousUploads
  */
 class UploadOptions
 {
+    public readonly bool $deleteModelOnUploadFail;
+    public readonly bool $deleteModelOnQueueUploadFail;
+    public readonly bool $forceDeleteUploads;
+    public readonly bool $rollbackModelOnUploadFail;
+    public readonly bool $rollbackModelOnQueueUploadFail;
+    public readonly ?string $uploadOnQueue;
+    public readonly string $temporaryDisk;
+
     public function __construct(
         public readonly ?SerializableClosure $beforeSavingUploadUsing = null,
-        public readonly bool $dontUpload = false,
+        public readonly bool $disableUpload = false,
         public readonly array $originalAttributes = [],
-        private ?bool $deleteModelOnUploadFail = null,
-        private ?bool $deleteModelOnQueueUploadFail = null,
-        private ?bool $forceDeleteUploads = null,
-        private ?bool $replacePreviousUploads = null,
-        private ?bool $rollbackModelOnUploadFail = null,
-        private ?bool $rollbackModelOnQueueUploadFail = null,
-        private ?string $queue = null,
-        private ?string $temporaryDisk = null,
+        private ?bool $replacePreviousUploads = null
     ) {
         $this->deleteModelOnUploadFail ??= config('uploadable.delete_model_on_upload_fail', true);
         $this->deleteModelOnQueueUploadFail ??= config('uploadable.delete_model_on_queue_upload_fail', false);
@@ -35,27 +29,21 @@ class UploadOptions
         $this->replacePreviousUploads ??= config('uploadable.replace_previous_uploads', false);
         $this->rollbackModelOnUploadFail ??= config('uploadable.rollback_model_on_upload_fail', true);
         $this->rollbackModelOnQueueUploadFail ??= config('uploadable.rollback_model_on_queue_upload_fail', false);
-        $this->queue ??= config('uploadable.upload_on_queue', null);
+        $this->uploadOnQueue ??= config('uploadable.upload_on_queue', null);
         $this->temporaryDisk ??= config('uploadable.temporary_disk', 'local');
     }
 
     /**
-     * Make the properties read-only outside of this class
-     * yet allow them to be set in the constructor.
-     * This is to allow setting their default values
-     * based on config values.
+     * This is to emulate a read-only property.
      *
-     * @param  string  $name
-     * @param  mixed  $value
-     *
-     * @throws \RuntimeException
+     * @throws \Exception
      */
-    public function __set($name, $value): void
+    public function __set($name, $value)
     {
-        throw new \RuntimeException(sprintf('Property %s is read-only', $name));
+        throw new \Exception(sprintf('Cannot set read-only property %s', $name));
     }
 
-    public function __get($name): mixed
+    public function __get($name)
     {
         return $this->$name;
     }

@@ -260,7 +260,7 @@ it('should delete the file from the temporary disk after it was successfully upl
     expect(FacadesStorage::disk(config('uploadable.temporary_disk', 'local'))->exists($path))->toBeFalse();
 });
 
-it('should replace the previous file with the new one', function () {
+it('should replace the previous file with the new one by setting it on the config', function () {
     config()->set('uploadable.replace_previous_uploads', true);
 
     $post = new TestPost();
@@ -283,14 +283,42 @@ it('should replace the previous file with the new one', function () {
     expect($newUpload->original_name)->toContain('avatar2.jpg');
 });
 
-it('should not upload the file', function () {
-    TestPost::dontUpload();
+it('should replace the previous file with the new one by setting it from the class', function () {
+    // Emulate that this is set in config to false by default
+    config()->set('uploadable.replace_previous_uploads', false);
+
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
     $post->save();
 
-    upload_file_for($post, options: new UploadOptions(dontUpload: TestPost::$dontUpload));
+    // Then set it to true via the class
+    TestPost::replacePreviousUploads();
+
+    $options = new UploadOptions(replacePreviousUploads: TestPost::$replacePreviousUploads);
+    $file = UploadedFile::fake()->image('avatar1.jpg');
+    upload_file_for($post, $file, $options);
+
+    $oldUpload = $post->uploads()->first();
+
+    $file = UploadedFile::fake()->image('avatar2.jpg');
+    upload_file_for($post, $file, $options);
+
+    $newUpload = $post->uploads()->first();
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($oldUpload->id)->not->toBe($newUpload->id);
+    expect($newUpload->original_name)->toContain('avatar2.jpg');
+});
+
+it('should not upload the file', function () {
+    TestPost::disableUpload();
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    upload_file_for($post, options: new UploadOptions(disableUpload: TestPost::$disableUpload));
 
     expect($post->uploads()->count())->toBe(0);
 });
@@ -545,9 +573,7 @@ it('can upload a file on queue', function () {
 
     $files = $post->getUploads();
 
-    $options = new UploadOptions(
-        queue: 'default',
-    );
+    $options = new UploadOptions();
 
     ProcessUploadJob::dispatch($files, $post, $options);
     Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post) {
