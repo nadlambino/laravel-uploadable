@@ -1168,3 +1168,117 @@ it('should upload a file on queue when set from the class', function () {
     expect($post->uploads()->count())->toBe(1);
     expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
 });
+
+it('should return only one image when querying the `image` relation method', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+        'video' => UploadedFile::fake()->create('video.mp4', 1000, 'video/mp4'),
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->image()->get()->count())->toBe(1);
+    expect($post->image->original_name)->toContain('avatar1.jpg');
+});
+
+it('should return only the images when querying the `images` relation method', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+        'video' => UploadedFile::fake()->create('video.mp4', 1000, 'video/mp4'),
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->images()->get()->count())->toBe(2);
+    expect($post->images->count())->toBe(2);
+});
+
+it('should return only one video when querying the `video` relation method', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+        'videos' => [
+            UploadedFile::fake()->create('video1.mp4', 1000, 'video/mp4'),
+            UploadedFile::fake()->create('video2.mp4', 1000, 'video/mp4'),
+        ],
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->video()->get()->count())->toBe(1);
+    expect($post->video->original_name)->toContain('video1.mp4');
+});
+
+it('should return only the videos when querying the `videos` relation method', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+        'videos' => [
+            UploadedFile::fake()->create('video1.mp4', 1000, 'video/mp4'),
+            UploadedFile::fake()->create('video2.mp4', 1000, 'video/mp4'),
+        ],
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->videos()->get()->count())->toBe(2);
+    expect($post->videos->count())->toBe(2);
+});
+
+it('should return only one document when querying the `document` relation method', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+        'document' => [
+            UploadedFile::fake()->create('document1.pdf', 1000, 'application/pdf'),
+            UploadedFile::fake()->create('document2.pdf', 1000, 'application/pdf'),
+        ],
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->document()->get()->count())->toBe(1);
+    expect($post->document->original_name)->toContain('document1.pdf');
+});
+
+it('should return only the documents when querying the `documents` relation method', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+        'document' => [
+            UploadedFile::fake()->create('document1.pdf', 1000, 'application/pdf'),
+            UploadedFile::fake()->create('document2.pdf', 1000, 'application/pdf'),
+        ],
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->documents()->get()->count())->toBe(2);
+    expect($post->documents->count())->toBe(2);
+});
