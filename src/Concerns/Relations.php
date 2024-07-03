@@ -33,7 +33,7 @@ trait Relations
      *
      * @return MorphOne The upload relation.
      */
-    public function image() : MorphOne
+    public function image(): MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable')
             ->where(function ($query) {
@@ -48,7 +48,7 @@ trait Relations
      *
      * @return MorphMany The upload relation.
      */
-    public function images() : MorphMany
+    public function images(): MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable')
             ->where(function ($query) {
@@ -62,7 +62,7 @@ trait Relations
      *
      * @return MorphOne The upload relation.
      */
-    public function video() : MorphOne
+    public function video(): MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable')
             ->where(function ($query) {
@@ -77,7 +77,7 @@ trait Relations
      *
      * @return MorphMany The upload relation.
      */
-    public function videos() : MorphMany
+    public function videos(): MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable')
             ->where(function ($query) {
@@ -91,7 +91,7 @@ trait Relations
      *
      * @return MorphOne The upload relation.
      */
-    public function document() : MorphOne
+    public function document(): MorphOne
     {
         return $this->morphOne(Upload::class, 'uploadable')
             ->where(function ($query) {
@@ -106,7 +106,7 @@ trait Relations
      *
      * @return MorphMany The upload relation.
      */
-    public function documents() : MorphMany
+    public function documents(): MorphMany
     {
         return $this->morphMany(Upload::class, 'uploadable')
             ->where(function ($query) {
