@@ -3,10 +3,12 @@
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage as FacadesStorage;
 use NadLambino\Uploadable\Actions\Upload;
 use NadLambino\Uploadable\Dto\UploadOptions;
 use NadLambino\Uploadable\Facades\Storage;
+use NadLambino\Uploadable\Jobs\ProcessUploadJob;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
@@ -511,6 +513,39 @@ it('can upload a file outside of the context of request using a string path from
 
     expect($post->uploads()->count())->toBe(1);
     expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
+});
+
+it('can upload a file on queue', function () {
+    Queue::fake();
+    config()->set('queues.default', 'sync');
+    config()->set('uploadable.upload_on_queue', 'default');
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    ProcessUploadJob::dispatch($files, $post);
+
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post) {
+        return $job->files === $files && $job->model->id === $post->id;
+    });
+
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post) {
+        $job->handle($files, $post);
+
+        return true;
+    });
+
+    expect($post->uploads()->count())->toBe(1);
 });
 
 // TODO: test the deletion and rollback of uploadable model when an error occurs on queue
