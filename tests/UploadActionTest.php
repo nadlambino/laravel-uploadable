@@ -1072,3 +1072,70 @@ it('should replace the previous file with the new one, set from the class', func
     expect($post->uploads()->count())->toBe(1);
     expect($post->uploads()->first()->original_name)->toContain('avatar2.jpg');
 });
+
+it('can manually create the uploaded file using the `createUploads` method', function () {
+    TestPost::disableUpload();
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->uploads()->count())->toBe(0);
+
+    $post->uploadFrom([
+        'image' => UploadedFile::fake()->image('avatar.jpg'),
+    ])->createUploads();
+
+    expect($post->uploads()->count())->toBe(1);
+    expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
+});
+
+it('can manually create the uploaded file using the `updateUploads` method', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'image' => UploadedFile::fake()->image('avatar.jpg'),
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->uploads()->count())->toBe(1);
+
+    TestPost::disableUpload();
+
+    $post->update([
+        'title' => $newTitle = fake()->sentence(),
+    ]);
+    $post->uploadFrom([
+        'image' => UploadedFile::fake()->image('avatar2.jpg'),
+    ])->updateUploads();
+
+    expect($post->uploads()->count())->toBe(2);
+    expect($newTitle)->toBe($post->title);
+});
+
+it('can manually create the uploaded file using the `updateUploads` method and replace previous uploads', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'image' => UploadedFile::fake()->image('avatar.jpg'),
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->uploads()->count())->toBe(1);
+
+    TestPost::disableUpload();
+    TestPost::replacePreviousUploads();
+    $post->update([
+        'title' => $newTitle = fake()->sentence(),
+    ]);
+    $post->uploadFrom([
+        'image' => UploadedFile::fake()->image('avatar2.jpg'),
+    ])->updateUploads();
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($newTitle)->toBe($post->title);
+    expect($post->uploads()->first()->original_name)->toContain('avatar2.jpg');
+});
+
