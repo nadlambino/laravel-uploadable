@@ -27,6 +27,18 @@ function upload_file_for(Model $model, array|UploadedFile|string|null $files = n
     $action->handle($files, $model, $options);
 }
 
+afterEach(function () {
+    config()->set('uploadable.validate', true);
+    config()->set('uploadable.delete_model_on_upload_fail', true);
+    config()->set('uploadable.rollback_model_on_upload_fail', true);
+    config()->set('uploadable.force_delete_uploads', false);
+    config()->set('uploadable.replace_previous_uploads', false);
+    config()->set('uploadable.upload_on_queue', null);
+    config()->set('uploadable.delete_model_on_queue_upload_fail', false);
+    config()->set('uploadable.rollback_model_on_queue_upload_fail', false);
+    config()->set('uploadable.temporary_disk', 'local');
+});
+
 it('can upload a file for a given model', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
@@ -119,6 +131,8 @@ it('should delete the uploaded files in the storage when an error occurs', funct
 });
 
 it('should not delete the recently created uploadable mdel when an error occurs', function () {
+    config()->set('uploadable.delete_model_on_upload_fail', false);
+
     TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
         throw new \Exception('An error occurred');
     });
@@ -131,7 +145,6 @@ it('should not delete the recently created uploadable mdel when an error occurs'
     try {
         upload_file_for($post, options: new UploadOptions(
             beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
-            deleteModelOnUploadFail: false
         ));
     } catch (\Exception) {
     }
@@ -140,6 +153,8 @@ it('should not delete the recently created uploadable mdel when an error occurs'
 });
 
 it('should delete the recently created uploadable model when an error occurs', function () {
+    config()->set('uploadable.delete_model_on_upload_fail', true);
+
     TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
         throw new \Exception('An error occurred');
     });
@@ -152,7 +167,6 @@ it('should delete the recently created uploadable model when an error occurs', f
     try {
         upload_file_for($post, options: new UploadOptions(
             beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
-            deleteModelOnUploadFail: true
         ));
     } catch (\Exception) {
     }
@@ -161,6 +175,8 @@ it('should delete the recently created uploadable model when an error occurs', f
 });
 
 it('should not rollback the updated uploadable model when an error occurs', function () {
+    config()->set('uploadable.rollback_model_on_upload_fail', false);
+
     TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
         throw new \Exception('An error occurred');
     });
@@ -177,7 +193,6 @@ it('should not rollback the updated uploadable model when an error occurs', func
     try {
         upload_file_for($post, options: new UploadOptions(
             beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
-            rollbackModelOnUploadFail: false
         ));
     } catch (\Exception) {
     }
@@ -188,6 +203,8 @@ it('should not rollback the updated uploadable model when an error occurs', func
 });
 
 it('should rollback the updated uploadable model when an error occurs', function () {
+    config()->set('uploadable.rollback_model_on_upload_fail', true);
+
     TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
         throw new \Exception('An error occurred');
     });
@@ -205,7 +222,6 @@ it('should rollback the updated uploadable model when an error occurs', function
     try {
         upload_file_for($post, options: new UploadOptions(
             beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
-            rollbackModelOnUploadFail: true,
             originalAttributes: $originalAttributes
         ));
     } catch (\Exception) {
@@ -245,6 +261,8 @@ it('should delete the file from the temporary disk after it was successfully upl
 });
 
 it('should replace the previous file with the new one', function () {
+    config()->set('uploadable.replace_previous_uploads', true);
+
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
@@ -256,7 +274,7 @@ it('should replace the previous file with the new one', function () {
     $oldUpload = $post->uploads()->first();
 
     $file = UploadedFile::fake()->image('avatar2.jpg');
-    upload_file_for($post, $file, new UploadOptions(replacePreviousUploads: true));
+    upload_file_for($post, $file, new UploadOptions());
 
     $newUpload = $post->uploads()->first();
 
@@ -547,6 +565,8 @@ it('can upload a file on queue', function () {
 it('should delete the uploadable model when an error occurs during the upload process on queue', function () {
     Queue::fake();
     config()->set('queues.default', 'sync');
+    config()->set('uploadable.delete_model_on_queue_upload_fail', true);
+    config()->set('uploadable.upload_on_queue', 'default');
 
     TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
         throw new \Exception('An error occurred');
@@ -566,8 +586,6 @@ it('should delete the uploadable model when an error occurs during the upload pr
 
     $options = new UploadOptions(
         beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
-        deleteModelOnQueueUploadFail: true,
-        queue: 'default'
     );
 
     ProcessUploadJob::dispatch($files, $post, $options);
@@ -587,6 +605,8 @@ it('should delete the uploadable model when an error occurs during the upload pr
 it('should not delete the uploadable model when an error occurs during the upload process on queue', function () {
     Queue::fake();
     config()->set('queues.default', 'sync');
+    config()->set('uploadable.delete_model_on_queue_upload_fail', false);
+    config()->set('uploadable.upload_on_queue', 'default');
 
     TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
         throw new \Exception('An error occurred');
@@ -606,8 +626,6 @@ it('should not delete the uploadable model when an error occurs during the uploa
 
     $options = new UploadOptions(
         beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
-        deleteModelOnQueueUploadFail: false,
-        queue: 'default'
     );
 
     ProcessUploadJob::dispatch($files, $post, $options);
@@ -621,12 +639,15 @@ it('should not delete the uploadable model when an error occurs during the uploa
         return true;
     });
 
-    expect($post->exists())->toBeTrue();
+    $post = TestPost::find($post->id);
+    expect($post)->not->toBeNull();
 });
 
 it('should rollback the changes from uploadable model when an error occurs during the upload process on queue', function () {
     Queue::fake();
     config()->set('queues.default', 'sync');
+    config()->set('uploadable.rollback_model_on_queue_upload_fail', true);
+    config()->set('uploadable.upload_on_queue', 'default');
 
     TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
         throw new \Exception('An error occurred');
@@ -651,9 +672,7 @@ it('should rollback the changes from uploadable model when an error occurs durin
 
     $options = new UploadOptions(
         beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
-        rollbackModelOnQueueUploadFail: true,
         originalAttributes: $originalAttributes,
-        queue: 'default'
     );
 
     ProcessUploadJob::dispatch($files, $post, $options);
@@ -675,6 +694,8 @@ it('should rollback the changes from uploadable model when an error occurs durin
 it('should not rollback the changes from uploadable model when an error occurs during the upload process on queue', function () {
     Queue::fake();
     config()->set('queues.default', 'sync');
+    config()->set('uploadable.rollback_model_on_queue_upload_fail', false);
+    config()->set('uploadable.upload_on_queue', 'default');
 
     TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
         throw new \Exception('An error occurred');
@@ -698,8 +719,6 @@ it('should not rollback the changes from uploadable model when an error occurs d
 
     $options = new UploadOptions(
         beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
-        rollbackModelOnQueueUploadFail: false,
-        queue: 'default'
     );
 
     ProcessUploadJob::dispatch($files, $post, $options);
