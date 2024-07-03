@@ -776,4 +776,3 @@ it('should not delete the files from storage when the uploadable model was delet
     expect(ModelsUpload::query()->withTrashed()->get())->not->toBeEmpty();
     expect(Storage::exists($files->path))->toBeTrue();
 });
-

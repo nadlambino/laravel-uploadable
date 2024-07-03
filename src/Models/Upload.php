@@ -20,7 +20,7 @@ class Upload extends Model
         'type',
     ];
 
-    protected static function booted() : void
+    protected static function booted(): void
     {
         static::forceDeleted(function (Upload $upload) {
             app(StorageContract::class)->delete($upload->path);

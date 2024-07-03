@@ -13,7 +13,7 @@ trait Events
             DB::beginTransaction();
 
             $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
-            $model->uploads()->get()->each(fn($upload) => $upload->$deleteMethod());
+            $model->uploads()->get()->each(fn ($upload) => $upload->$deleteMethod());
 
             DB::commit();
         } catch (\Exception $exception) {
