@@ -16,8 +16,9 @@ trait Options
 
     /**
      * Whether or not to replace previous uploads.
+     * Initally set to null so that it won't override the config.
      */
-    public static bool $replacePreviousUploads = false;
+    public static ?bool $replacePreviousUploads = null;
 
     /**
      * Whether or not to upload files.
@@ -26,11 +27,13 @@ trait Options
 
     /**
      * Whether or not to validate uploads.
+     * Initally set to null so that it won't override the config.
      */
-    public static bool $validateUploads = true;
+    public static ?bool $validateUploads = null;
 
     /**
      * The queue to upload on.
+     * Initally set to null so that it won't override the config.
      */
     public static ?string $uploadOnQueue = null;
 

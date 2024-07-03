@@ -946,3 +946,129 @@ it('should rollback the recently created uploadable model when the upload proces
 
     expect($post->exists())->toBeFalse();
 });
+
+it('can upload a file from the request when the uploadable model is updated', function () {
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect($post->uploads()->count())->toBe(1);
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar2.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $post->update([
+        'title' => $newTitle = fake()->sentence(),
+    ]);
+
+    $uploads = $post->uploads()->get();
+    expect($post->uploads()->count())->toBe(2);
+    expect(Storage::exists($uploads[0]->path))->toBeTrue();
+    expect(Storage::exists($uploads[1]->path))->toBeTrue();
+    expect($uploads[0]->original_name)->toContain('avatar1.jpg');
+    expect($uploads[1]->original_name)->toContain('avatar2.jpg');
+    expect($post->title)->toBe($newTitle);
+});
+
+it('should rollback the recently updated uploadable model when the upload process from updated event fails, set from the config', function () {
+    config()->set('uploadable.rollback_model_on_upload_fail', true);
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar2.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+
+    $post = TestPost::find($post->id);
+    $post->title = $newTitle = fake()->sentence();
+    try {
+        $post->save();
+    } catch (\Exception) {
+
+    }
+
+    $post = TestPost::find($post->id);
+
+    expect($post->title)->not->toBe($newTitle);
+    expect($post->uploads()->count())->toBe(1);
+});
+
+it('should replace the previous file with the new one, set from the config', function () {
+    config()->set('uploadable.replace_previous_uploads', true);
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar2.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $post = TestPost::find($post->id);
+    $post->title = fake()->sentence();
+    $post->save();
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($post->uploads()->first()->original_name)->toContain('avatar2.jpg');
+});
+
+it('should replace the previous file with the new one, set from the class', function () {
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar2.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    TestPost::replacePreviousUploads();
+    $post = TestPost::find($post->id);
+    $post->title = fake()->sentence();
+    $post->save();
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($post->uploads()->first()->original_name)->toContain('avatar2.jpg');
+});

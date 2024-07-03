@@ -10,6 +10,8 @@ class TestPost extends Model
 {
     use Uploadable;
 
+    protected $guarded = [];
+
     public function beforeSavingUpload(Upload $upload, Model $model): void
     {
         $upload->tag = $model->title;

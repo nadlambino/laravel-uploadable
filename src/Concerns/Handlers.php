@@ -12,6 +12,16 @@ use NadLambino\Uploadable\Jobs\ProcessUploadJob;
 
 trait Handlers
 {
+    protected function handleCreated(Model $model): void
+    {
+        $this->processUploads($model, true);
+    }
+
+    protected function handleUpdated(Model $model): void
+    {
+        $this->processUploads($model, false);
+    }
+
     protected function handleDeleted(Model $model): void
     {
         try {
@@ -31,11 +41,6 @@ trait Handlers
     protected function handleRestored(Model $model): void
     {
         $model->uploads()->restore();
-    }
-
-    protected function handleCreated(Model $model): void
-    {
-        $this->processUploads($model, true);
     }
 
     private function processUploads(Model $model, bool $deleteModelOnFail): void

@@ -22,6 +22,7 @@ trait Uploadable
         static::validateUploads(config('uploadable.validate', true));
         static::uploadOnQueue(config('uploadable.upload_on_queue', null));
         static::created(fn ($model) => $model->handleCreated($model));
+        static::updated(fn ($model) => $model->handleUpdated($model));
         static::deleted(fn ($model) => $model->handleDeleted($model));
 
         if (method_exists(static::class, 'restored')) {
