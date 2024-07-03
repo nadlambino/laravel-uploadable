@@ -18,5 +18,5 @@ readonly class UploadOptions
         public bool $rollbackModelOnQueueUploadFail = false,
         public ?string $queue = null,
         public string $temporaryDisk = 'local',
-    ) { }
+    ) {}
 }

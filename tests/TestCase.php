@@ -55,7 +55,8 @@ class TestCase extends Orchestra
 
     private function setUpAdditionalMigration()
     {
-        $migration = new class extends Migration {
+        $migration = new class extends Migration
+        {
             public function up()
             {
                 Schema::table('uploads', function (Blueprint $table) {
