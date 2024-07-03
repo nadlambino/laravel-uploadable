@@ -289,7 +289,7 @@ it('can upload a single file from the request', function () {
         'image' => UploadedFile::fake()->image('avatar.jpg'),
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $files = $post->getUploads();
 
@@ -311,7 +311,7 @@ it('can upload multiple files from the request', function () {
         ],
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $files = $post->getUploads();
 
@@ -330,7 +330,7 @@ it('should validate a single invalid image', function () {
         'image' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $this->expectException(\Illuminate\Validation\ValidationException::class);
 
@@ -346,11 +346,11 @@ it('should validate multiple invalid images', function () {
     $request = new Request([
         'images' => [
             UploadedFile::fake()->image('avatar1.jpg'),
-            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf')
+            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
         ],
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $this->expectException(\Illuminate\Validation\ValidationException::class);
 
@@ -367,7 +367,7 @@ it('should validate a singe invalid video', function () {
         'video' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $this->expectException(\Illuminate\Validation\ValidationException::class);
 
@@ -383,11 +383,11 @@ it('should validate multiple invalid videos', function () {
     $request = new Request([
         'videos' => [
             UploadedFile::fake()->image('avatar1.jpg'),
-            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf')
+            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
         ],
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $this->expectException(\Illuminate\Validation\ValidationException::class);
 
@@ -404,7 +404,7 @@ it('should validate a single invalid document', function () {
         'document' => UploadedFile::fake()->image('avatar1.jpg'),
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $this->expectException(\Illuminate\Validation\ValidationException::class);
 
@@ -420,11 +420,11 @@ it('should validate multiple invalid documents', function () {
     $request = new Request([
         'documents' => [
             UploadedFile::fake()->image('avatar1.jpg'),
-            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf')
+            UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
         ],
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $this->expectException(\Illuminate\Validation\ValidationException::class);
 
@@ -442,7 +442,7 @@ it('should skip the validation for a specific uploadable model', function () {
         'image' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
     ]);
 
-    app()->bind('request', fn() => $request);
+    app()->bind('request', fn () => $request);
 
     $files = $post->getUploads();
 

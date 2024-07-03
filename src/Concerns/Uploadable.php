@@ -25,7 +25,7 @@ trait Uploadable
         return $this->getTable().DIRECTORY_SEPARATOR.$this->{$this->getKeyName()};
     }
 
-    public function getUploads() : array
+    public function getUploads(): array
     {
         $rules = $this->getUploadRules();
 
@@ -33,14 +33,14 @@ trait Uploadable
         $request = app('request');
 
         if ($this::$validateUploads) {
-            $validatable = array_filter($rules, fn($value) => ! empty($value));
+            $validatable = array_filter($rules, fn ($value) => ! empty($value));
             $request->validate($validatable, $this->uploadRulesMessages());
         }
 
         $fields = collect($rules)
             ->keys()
             ->zip($rules)
-            ->map(fn($pair) => is_numeric($pair[0]) ? $pair[1] : $pair[0])
+            ->map(fn ($pair) => is_numeric($pair[0]) ? $pair[1] : $pair[0])
             ->all();
 
         return $request->only($fields);
