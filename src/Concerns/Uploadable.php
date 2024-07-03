@@ -10,15 +10,11 @@ trait Uploadable
 
     /**
      * The files that should be uploaded.
-     *
-     * @var array
      */
     protected array $uploadFrom = [];
 
     /**
      * Self boot this trait.
-     *
-     * @return void
      */
     public static function bootUploadable(): void
     {
@@ -30,10 +26,6 @@ trait Uploadable
 
     /**
      * Get the upload filename.
-     *
-     * @param UploadedFile $file
-     *
-     * @return string
      */
     public function getUploadFilename(UploadedFile $file): string
     {
@@ -42,10 +34,6 @@ trait Uploadable
 
     /**
      * Get the upload path.
-     *
-     * @param UploadedFile $file
-     *
-     * @return string
      */
     public function getUploadPath(UploadedFile $file): string
     {
@@ -54,8 +42,6 @@ trait Uploadable
 
     /**
      * Get the files that should be uploaded.
-     *
-     * @return array
      */
     public function getUploads(): array
     {
@@ -87,8 +73,6 @@ trait Uploadable
 
     /**
      * Get the files from the request.
-     *
-     * @return array
      */
     private function getFilesFromRequest(): array
     {
@@ -116,9 +100,7 @@ trait Uploadable
      * is done in the queue. UploadedFile instances are not serializable so they
      * need to be stored in a temporary disk.
      *
-     * @param array $files The files to upload.
-     *
-     * @return array
+     * @param  array  $files  The files to upload.
      */
     private function uploadFilesTemporarily(array $files): array
     {
@@ -127,11 +109,13 @@ trait Uploadable
         foreach ($files as $file) {
             if (is_array($file)) {
                 $paths = array_merge($paths, $this->uploadFilesTemporarily($file));
+
                 continue;
             }
 
             if (! ($file instanceof UploadedFile)) {
                 $paths[] = $file;
+
                 continue;
             }
 

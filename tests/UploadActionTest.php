@@ -531,7 +531,7 @@ it('can upload a file on queue', function () {
     );
 
     ProcessUploadJob::dispatch($files, $post, $options);
-    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post, $options) {
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post) {
         return $job->files === $files && $job->model->id === $post->id;
     });
     Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post, $options) {

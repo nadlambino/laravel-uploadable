@@ -20,11 +20,9 @@ class ProcessUploadJob implements ShouldQueue
         public readonly array|UploadedFile|string $files,
         public readonly Model $model,
         public readonly ?UploadOptions $options = null,
-    )
-    {
-    }
+    ) {}
 
-    public function handle() : void
+    public function handle(): void
     {
         /** @var Upload $action */
         $action = app(Upload::class);
