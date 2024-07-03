@@ -4,8 +4,10 @@ namespace NadLambino\Uploadable\Tests;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Facades\Schema;
 use NadLambino\Uploadable\UploadableServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
@@ -48,7 +50,27 @@ class TestCase extends Orchestra
         $migration = include __DIR__.'/../database/migrations/0001_01_01_000000_create_uploads_table.php.stub';
         $migration->up();
 
-        $migration = include __DIR__.'/../database/migrations/add_tag_to_uploads_table.php';
+        $this->setUpAdditionalMigration();
+    }
+
+    private function setUpAdditionalMigration()
+    {
+        $migration = new class extends Migration {
+            public function up()
+            {
+                Schema::table('uploads', function (Blueprint $table) {
+                    $table->string('tag')->nullable()->default(null)->after('size');
+                });
+            }
+
+            public function down()
+            {
+                Schema::table('uploads', function (Blueprint $table) {
+                    $table->dropColumn('tag');
+                });
+            }
+        };
+
         $migration->up();
     }
 }
