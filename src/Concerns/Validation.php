@@ -19,7 +19,7 @@ trait Validation
      *
      * @return array<string, string> The messages.
      */
-    protected function uploadRulesMessages(): array
+    protected function uploadRuleMessages(): array
     {
         return [];
     }

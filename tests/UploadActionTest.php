@@ -11,6 +11,7 @@ use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomPath;
+use NadLambino\Uploadable\Tests\Models\TestPostWithCustomRules;
 
 function upload_file_for(Model $model, array|UploadedFile|string|null $files = null, ?UploadOptions $options = null)
 {
@@ -427,6 +428,24 @@ it('should validate multiple invalid documents', function () {
     app()->bind('request', fn () => $request);
 
     $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+    $post->getUploads();
+});
+
+it('should override the default validation rules and messages', function () {
+    $post = new TestPostWithCustomRules();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.webp'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $this->expectException(\Illuminate\Validation\ValidationException::class);
+    $this->expectExceptionMessage('Only jpeg, jpg and png files are allowed');
 
     $post->getUploads();
 });

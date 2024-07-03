@@ -40,7 +40,7 @@ trait Uploadable
 
         if ($this::$validateUploads) {
             $validatable = array_filter($rules, fn ($value) => ! empty($value));
-            $request->validate($validatable, $this->uploadRulesMessages());
+            $request->validate($validatable, $this->uploadRuleMessages());
         }
 
         $fields = collect($rules)
