@@ -15,7 +15,7 @@ class UploadableServiceProvider extends PackageServiceProvider
         parent::boot();
 
         $this->publishes([
-            __DIR__ . '/Models/Upload.php' => app_path('Models/Upload.php'),
+            __DIR__.'/Models/Upload.php' => app_path('Models/Upload.php'),
         ], 'uploadable-model');
 
         $default = config('filesystems.default', 'public');
