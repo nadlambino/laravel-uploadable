@@ -264,12 +264,6 @@ it('should replace the previous file with the new one', function () {
     expect($newUpload->original_name)->toContain('avatar2.jpg');
 });
 
-it('should matched the model\'s default options and the uploadable config', function () {
-    expect(TestPost::$replacePreviousUploads)->toBe(config('uploadable.replace_previous_uploads'));
-    expect(TestPost::$validateUploads)->toBe(config('uploadable.validate'));
-    expect(TestPost::$uploadOnQueue)->toBe(config('uploadable.upload_on_queue'));
-});
-
 it('should not upload the file', function () {
     TestPost::dontUpload();
     $post = new TestPost();
@@ -518,7 +512,6 @@ it('can upload a file outside of the context of request using a string path from
 it('can upload a file on queue', function () {
     Queue::fake();
     config()->set('queues.default', 'sync');
-    config()->set('uploadable.upload_on_queue', 'default');
 
     $post = new TestPost();
     $post->title = fake()->sentence();
@@ -533,14 +526,16 @@ it('can upload a file on queue', function () {
 
     $files = $post->getUploads();
 
-    ProcessUploadJob::dispatch($files, $post);
+    $options = new UploadOptions(
+        queue: 'default',
+    );
 
-    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post) {
+    ProcessUploadJob::dispatch($files, $post, $options);
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post, $options) {
         return $job->files === $files && $job->model->id === $post->id;
     });
-
-    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post) {
-        $job->handle($files, $post);
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post, $options) {
+        $job->handle($files, $post, $options);
 
         return true;
     });
@@ -548,4 +543,176 @@ it('can upload a file on queue', function () {
     expect($post->uploads()->count())->toBe(1);
 });
 
-// TODO: test the deletion and rollback of uploadable model when an error occurs on queue
+it('should delete the uploadable model when an error occurs during the upload process on queue', function () {
+    Queue::fake();
+    config()->set('queues.default', 'sync');
+
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    $options = new UploadOptions(
+        beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
+        deleteModelOnQueueUploadFail: true,
+        queue: 'default'
+    );
+
+    ProcessUploadJob::dispatch($files, $post, $options);
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post, $options) {
+        try {
+            $job->handle($files, $post, $options);
+        } catch (\Exception) {
+
+        }
+
+        return true;
+    });
+
+    expect($post->exists())->toBeFalse();
+});
+
+it('should not delete the uploadable model when an error occurs during the upload process on queue', function () {
+    Queue::fake();
+    config()->set('queues.default', 'sync');
+
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    $options = new UploadOptions(
+        beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
+        deleteModelOnQueueUploadFail: false,
+        queue: 'default'
+    );
+
+    ProcessUploadJob::dispatch($files, $post, $options);
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post, $options) {
+        try {
+            $job->handle($files, $post, $options);
+        } catch (\Exception) {
+
+        }
+
+        return true;
+    });
+
+    expect($post->exists())->toBeTrue();
+});
+
+it('should rollback the changes from uploadable model when an error occurs during the upload process on queue', function () {
+    Queue::fake();
+    config()->set('queues.default', 'sync');
+
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $post = TestPost::find($post->id);
+    $originalAttributes = $post->getOriginal();
+    $post->title = $newTitle = fake()->sentence();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    $options = new UploadOptions(
+        beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
+        rollbackModelOnQueueUploadFail: true,
+        originalAttributes: $originalAttributes,
+        queue: 'default'
+    );
+
+    ProcessUploadJob::dispatch($files, $post, $options);
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post, $options) {
+        try {
+            $job->handle($files, $post, $options);
+        } catch (\Exception) {
+
+        }
+
+        return true;
+    });
+
+    $post = TestPost::find($post->id);
+
+    expect($post->title)->not->toBe($newTitle);
+});
+
+it('should not rollback the changes from uploadable model when an error occurs during the upload process on queue', function () {
+    Queue::fake();
+    config()->set('queues.default', 'sync');
+
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $post = TestPost::find($post->id);
+    $post->title = $newTitle = fake()->sentence();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    $options = new UploadOptions(
+        beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
+        rollbackModelOnQueueUploadFail: false,
+        queue: 'default'
+    );
+
+    ProcessUploadJob::dispatch($files, $post, $options);
+    Queue::assertPushed(ProcessUploadJob::class, function ($job) use ($files, $post, $options) {
+        try {
+            $job->handle($files, $post, $options);
+        } catch (\Exception) {
+
+        }
+
+        return true;
+    });
+
+    $post = TestPost::find($post->id);
+
+    expect($post->title)->toBe($newTitle);
+});
