@@ -37,13 +37,18 @@ afterEach(function () {
     config()->set('uploadable.delete_model_on_queue_upload_fail', false);
     config()->set('uploadable.rollback_model_on_queue_upload_fail', false);
     config()->set('uploadable.temporary_disk', 'local');
+    TestPost::$beforeSavingUploadCallback = null;
+    TestPost::$disableUpload = false;
+    TestPost::$replacePreviousUploads = false;
+    TestPost::$uploadOnQueue = null;
+    TestPost::$validateUploads = true;
 });
 
 it('can upload a file for a given model', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     upload_file_for($post);
 
@@ -54,7 +59,7 @@ it('can upload a file for a given model with custom filename', function () {
     $post = new TestPostWithCustomFilename();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     upload_file_for($post, $file = UploadedFile::fake()->image('avatar.jpg'));
 
@@ -65,7 +70,7 @@ it('can upload a file for a given model with custom path', function () {
     $post = new TestPostWithCustomPath();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     upload_file_for($post);
 
@@ -81,7 +86,7 @@ it('can upload a file and save the upload with additional data using the `before
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     upload_file_for($post, options: new UploadOptions(
         beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback
@@ -94,7 +99,7 @@ it('can upload a file and save the upload with additional data using the `before
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     upload_file_for($post);
 
@@ -109,7 +114,7 @@ it('should delete the uploaded files in the storage when an error occurs', funct
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     /** @var Upload $action */
     $action = app(Upload::class);
@@ -140,7 +145,7 @@ it('should not delete the recently created uploadable mdel when an error occurs'
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     try {
         upload_file_for($post, options: new UploadOptions(
@@ -162,7 +167,7 @@ it('should delete the recently created uploadable model when an error occurs', f
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     try {
         upload_file_for($post, options: new UploadOptions(
@@ -184,11 +189,11 @@ it('should not rollback the updated uploadable model when an error occurs', func
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $post = TestPost::find($post->id);
     $post->title = $newTitle = fake()->sentence();
-    $post->save();
+    $post->saveQuietly();
 
     try {
         upload_file_for($post, options: new UploadOptions(
@@ -212,12 +217,12 @@ it('should rollback the updated uploadable model when an error occurs', function
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $post = TestPost::find($post->id);
     $originalAttributes = $post->getOriginal();
     $post->title = $newTitle = fake()->sentence();
-    $post->save();
+    $post->saveQuietly();
 
     try {
         upload_file_for($post, options: new UploadOptions(
@@ -236,7 +241,7 @@ it('can upload a file that is uploaded in temporary disk first', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $file = UploadedFile::fake()->image('avatar.jpg');
     $path = $file->store('tmp', config('uploadable.temporary_disk', 'local'));
@@ -250,7 +255,7 @@ it('should delete the file from the temporary disk after it was successfully upl
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $file = UploadedFile::fake()->image('avatar.jpg');
     $path = $file->store('tmp', config('uploadable.temporary_disk', 'local'));
@@ -266,7 +271,7 @@ it('should replace the previous file with the new one by setting it on the confi
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $file = UploadedFile::fake()->image('avatar1.jpg');
     upload_file_for($post, $file);
@@ -290,7 +295,7 @@ it('should replace the previous file with the new one by setting it from the cla
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     // Then set it to true via the class
     TestPost::replacePreviousUploads();
@@ -316,7 +321,7 @@ it('should not upload the file', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     upload_file_for($post, options: new UploadOptions(disableUpload: TestPost::$disableUpload));
 
@@ -327,7 +332,7 @@ it('can upload a single file from the request', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar.jpg'),
@@ -346,7 +351,7 @@ it('can upload multiple files from the request', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'images' => [
@@ -368,7 +373,7 @@ it('should validate a single invalid image', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
@@ -385,7 +390,7 @@ it('should validate multiple invalid images', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'images' => [
@@ -405,7 +410,7 @@ it('should validate a singe invalid video', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'video' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
@@ -422,7 +427,7 @@ it('should validate multiple invalid videos', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'videos' => [
@@ -442,7 +447,7 @@ it('should validate a single invalid document', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'document' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -459,7 +464,7 @@ it('should validate multiple invalid documents', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'documents' => [
@@ -479,7 +484,7 @@ it('should override the default validation rules and messages', function () {
     $post = new TestPostWithCustomRules();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.webp'),
@@ -498,7 +503,7 @@ it('should skip the validation for a specific uploadable model', function () {
     $post::validateUploads(false);
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
@@ -524,7 +529,7 @@ it('can upload a file outside of the context of request', function () {
     ]);
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $files = $post->getUploads();
 
@@ -546,7 +551,7 @@ it('can upload a file outside of the context of request using a string path from
     $post->uploadFrom($fullpath);
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $files = $post->getUploads();
 
@@ -563,7 +568,7 @@ it('can upload a file on queue', function () {
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -600,7 +605,7 @@ it('should delete the uploadable model when an error occurs during the upload pr
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -640,7 +645,7 @@ it('should not delete the uploadable model when an error occurs during the uploa
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -681,12 +686,12 @@ it('should rollback the changes from uploadable model when an error occurs durin
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $post = TestPost::find($post->id);
     $originalAttributes = $post->getOriginal();
     $post->title = $newTitle = fake()->sentence();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -729,11 +734,11 @@ it('should not rollback the changes from uploadable model when an error occurs d
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $post = TestPost::find($post->id);
     $post->title = $newTitle = fake()->sentence();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -769,7 +774,7 @@ it('should delete the files from storage when the uploadable model was deleted',
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -799,7 +804,7 @@ it('should not delete the files from storage when the uploadable model was delet
     $post = new TestPost();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -829,7 +834,7 @@ it('should soft deletes the uploads when the uploadable model was just soft-dele
     $post = new TestPostWithSoftDeletes();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -859,7 +864,7 @@ it('should restore the uploads when the uploadable model was restored', function
     $post = new TestPostWithSoftDeletes();
     $post->title = fake()->sentence();
     $post->body = fake()->paragraph();
-    $post->save();
+    $post->saveQuietly();
 
     $request = new Request([
         'image' => UploadedFile::fake()->image('avatar1.jpg'),
@@ -882,4 +887,62 @@ it('should restore the uploads when the uploadable model was restored', function
 
     expect(ModelsUpload::query()->get())->not->toBeEmpty();
     expect(Storage::exists($files->path))->toBeTrue();
+});
+
+it('can upload a file from request when the uploadable model is created', function () {
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
+    expect($post->uploads()->count())->toBe(1);
+});
+
+it('can upload a outside of request when the uploadable model is updated', function () {
+    $post = new TestPost();
+    $post->uploadFrom([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+        'video' => UploadedFile::fake()->create('video.mp4', 1000, 'video/mp4'),
+    ]);
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
+    expect($post->uploads()->count())->toBe(3);
+});
+
+it('should rollback the recently created uploadable model when the upload process from created event fails', function () {
+    config()->set('uploadable.delete_model_on_upload_fail', true);
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    TestPost::beforeSavingUploadUsing(function (ModelsUpload $upload) {
+        throw new \Exception('An error occurred');
+    });
+
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    try {
+        $post->save();
+    } catch (\Exception) {
+
+    }
+
+    expect($post->exists())->toBeFalse();
 });

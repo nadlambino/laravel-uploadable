@@ -6,7 +6,7 @@ use Illuminate\Http\UploadedFile;
 
 trait Uploadable
 {
-    use Events, Options, Relations, Validation;
+    use Handlers, Options, Relations, Validation;
 
     /**
      * The files that should be uploaded.
@@ -21,10 +21,11 @@ trait Uploadable
         static::replacePreviousUploads(config('uploadable.replace_previous_uploads', false));
         static::validateUploads(config('uploadable.validate', true));
         static::uploadOnQueue(config('uploadable.upload_on_queue', null));
-        static::deleted(fn ($model) => $model->onDelete($model));
+        static::created(fn ($model) => $model->handleCreated($model));
+        static::deleted(fn ($model) => $model->handleDeleted($model));
 
         if (method_exists(static::class, 'restored')) {
-            static::restored(fn ($model) => $model->onRestore($model));
+            static::restored(fn ($model) => $model->handleRestored($model));
         }
     }
 

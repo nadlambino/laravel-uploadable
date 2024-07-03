@@ -4,6 +4,7 @@ namespace NadLambino\Uploadable\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Laravel\SerializableClosure\SerializableClosure;
+use NadLambino\Uploadable\Dto\UploadOptions;
 use NadLambino\Uploadable\Models\Upload;
 
 trait Options
@@ -82,5 +83,15 @@ trait Options
     public static function uploadOnQueue(?string $queue = null): void
     {
         static::$uploadOnQueue = $queue;
+    }
+
+    public function getUploadOptions(): UploadOptions
+    {
+        return new UploadOptions(
+            beforeSavingUploadUsing: static::$beforeSavingUploadCallback,
+            replacePreviousUploads: static::$replacePreviousUploads,
+            disableUpload: static::$disableUpload,
+            originalAttributes: $this->getOriginal(),
+        );
     }
 }
