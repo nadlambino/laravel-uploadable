@@ -5,13 +5,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage as FacadesStorage;
 use NadLambino\Uploadable\Actions\Upload;
+use NadLambino\Uploadable\Dto\UploadOptions;
 use NadLambino\Uploadable\Facades\Storage;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomPath;
 
-function upload_file_for(Model $model, array|UploadedFile|string|null $files = null, array $options = [])
+function upload_file_for(Model $model, array|UploadedFile|string|null $files = null, ?UploadOptions $options = null)
 {
     if ($files === null) {
         $files = UploadedFile::fake()->image('avatar.jpg');
@@ -66,7 +67,9 @@ it('can upload a file and save the upload with additional data using the `before
     $post->body = fake()->paragraph();
     $post->save();
 
-    upload_file_for($post, options: ['before_saving_upload_using' => TestPost::$beforeSavingUploadCallback]);
+    upload_file_for($post, options: new UploadOptions(
+        beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback
+    ));
 
     expect($post->uploads()->first()->tag)->toBe($tag);
 });
@@ -95,7 +98,9 @@ it('should delete the uploaded files in the storage when an error occurs', funct
     /** @var Upload $action */
     $action = app(Upload::class);
     try {
-        $action->handle(UploadedFile::fake()->image('avatar.jpg'), $post, ['before_saving_upload_using' => TestPost::$beforeSavingUploadCallback]);
+        $action->handle(UploadedFile::fake()->image('avatar.jpg'), $post, new UploadOptions(
+            beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback
+        ));
     } catch (\Exception) {
     }
 
@@ -120,10 +125,10 @@ it('should not delete the recently created uploadable mdel when an error occurs'
     $post->save();
 
     try {
-        upload_file_for($post, options: [
-            'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
-            'delete_model_on_upload_fail' => false,
-        ]);
+        upload_file_for($post, options: new UploadOptions(
+            beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
+            deleteModelOnUploadFail: false
+        ));
     } catch (\Exception) {
     }
 
@@ -141,10 +146,10 @@ it('should delete the recently created uploadable model when an error occurs', f
     $post->save();
 
     try {
-        upload_file_for($post, options: [
-            'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
-            'delete_model_on_upload_fail' => true,
-        ]);
+        upload_file_for($post, options: new UploadOptions(
+            beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
+            deleteModelOnUploadFail: true
+        ));
     } catch (\Exception) {
     }
 
@@ -166,10 +171,10 @@ it('should not rollback the updated uploadable model when an error occurs', func
     $post->save();
 
     try {
-        upload_file_for($post, options: [
-            'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
-            'rollback_model_on_upload_fail' => false,
-        ]);
+        upload_file_for($post, options: new UploadOptions(
+            beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
+            rollbackModelOnUploadFail: false
+        ));
     } catch (\Exception) {
     }
 
@@ -194,11 +199,11 @@ it('should rollback the updated uploadable model when an error occurs', function
     $post->save();
 
     try {
-        upload_file_for($post, options: [
-            'before_saving_upload_using' => TestPost::$beforeSavingUploadCallback,
-            'rollback_model_on_upload_fail' => true,
-            'original_attributes' => $originalAttributes,
-        ]);
+        upload_file_for($post, options: new UploadOptions(
+            beforeSavingUploadUsing: TestPost::$beforeSavingUploadCallback,
+            rollbackModelOnUploadFail: true,
+            originalAttributes: $originalAttributes
+        ));
     } catch (\Exception) {
     }
 
@@ -247,7 +252,7 @@ it('should replace the previous file with the new one', function () {
     $oldUpload = $post->uploads()->first();
 
     $file = UploadedFile::fake()->image('avatar2.jpg');
-    upload_file_for($post, $file, ['replace_previous_uploads' => true]);
+    upload_file_for($post, $file, new UploadOptions(replacePreviousUploads: true));
 
     $newUpload = $post->uploads()->first();
 
@@ -269,7 +274,7 @@ it('should not upload the file', function () {
     $post->body = fake()->paragraph();
     $post->save();
 
-    upload_file_for($post, options: ['dont_upload' => TestPost::$dontUpload]);
+    upload_file_for($post, options: new UploadOptions(dontUpload: TestPost::$dontUpload));
 
     expect($post->uploads()->count())->toBe(0);
 });

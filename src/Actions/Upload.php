@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\SerializableClosure\SerializableClosure;
 use NadLambino\Uploadable\Contracts\StorageContract;
+use NadLambino\Uploadable\Dto\UploadOptions;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 
 class Upload
@@ -20,7 +21,7 @@ class Upload
     /**
      * Combination of uploadable config and other options.
      */
-    private array $options = [];
+    private UploadOptions $options;
 
     /**
      * The full paths of the uploaded files.
@@ -41,14 +42,14 @@ class Upload
      *                                            Can be an array of files or a single file.
      *                                            File can be an instance of Illuminate\Http\UploadedFile or a full path to a file uploaded on the temporary disk.
      * @param  Model  $uploadable  The model to associate the uploads with.
-     * @param  array  $options  Combination of uploadable config and other options.
+     * @param  ?UploadOptions  $options  Combination of uploadable config and other options.
      */
-    public function handle(array|UploadedFile|string $files, Model $uploadable, array $options = []): void
+    public function handle(array|UploadedFile|string $files, Model $uploadable, ?UploadOptions $options = null): void
     {
         $this->uploadable = $uploadable;
-        $this->options = $options;
+        $this->options = $options ?? app(UploadOptions::class);
 
-        if (data_get($this->options, 'dont_upload') === true) {
+        if ($this->options->dontUpload === true) {
             return;
         }
 
@@ -130,7 +131,7 @@ class Upload
      */
     private function getUploadedFile(string $file): UploadedFile
     {
-        $tempDisk = config('uploadable.temporary_disk', 'local');
+        $tempDisk = $this->options->temporaryDisk;
         $root = config("filesystems.disks.$tempDisk.root");
 
         return new UploadedFile($root.DIRECTORY_SEPARATOR.$file, basename($file));
@@ -143,9 +144,9 @@ class Upload
      */
     private function beforeSavingUpload(ModelsUpload $upload): void
     {
-        $callback = data_get($this->options, 'before_saving_upload_using');
+        $callback = $this->options->beforeSavingUploadUsing;
 
-        if ($callback instanceof SerializableClosure || $callback instanceof \Closure) {
+        if ($callback instanceof SerializableClosure) {
             $callback($upload, $this->uploadable);
         } else {
             $this->uploadable->beforeSavingUpload($upload, $this->uploadable);
@@ -160,7 +161,7 @@ class Upload
     private function deleteTemporaryFile(UploadedFile|string $file): void
     {
         if (($file instanceof UploadedFile) === false) {
-            Storage::disk(config('uploadable.temporary_disk', 'local'))->delete($file);
+            Storage::disk($this->options->temporaryDisk)->delete($file);
         }
     }
 
@@ -199,11 +200,11 @@ class Upload
      */
     private function deleteUploadableModel(Model $model, bool $forced = false): void
     {
-        $isOnQueue = data_get($this->options, 'queue') !== null;
+        $isOnQueue = $this->options->queue !== null;
 
         if (
-            ($isOnQueue && data_get($this->options, 'delete_model_on_queue_upload_fail')) ||
-            (! $isOnQueue && data_get($this->options, 'delete_model_on_upload_fail')) ||
+            ($isOnQueue && $this->options->deleteModelOnQueueUploadFail) ||
+            (! $isOnQueue && $this->options->deleteModelOnUploadFail) ||
             $forced === true
         ) {
             DB::table($model->getTable())
@@ -219,14 +220,14 @@ class Upload
      */
     private function undoChangesFromUploadableModel(Model $model): void
     {
-        $isOnQueue = data_get($this->options, 'queue') !== null;
+        $isOnQueue = $this->options->queue !== null;
 
         if (
-            ($isOnQueue && data_get($this->options, 'rollback_model_on_queue_upload_fail')) ||
-            (! $isOnQueue && data_get($this->options, 'rollback_model_on_upload_fail'))
+            ($isOnQueue && $this->options->rollbackModelOnQueueUploadFail) ||
+            (! $isOnQueue && $this->options->rollbackModelOnUploadFail)
         ) {
             $model->fresh()
-                ->forceFill(data_get($this->options, 'original_attributes'))
+                ->forceFill($this->options->originalAttributes)
                 ->updateQuietly();
         }
     }
@@ -236,9 +237,9 @@ class Upload
      */
     private function deletePreviousUploads(): void
     {
-        $deleteMethod = config('uploadable.force_delete_uploads') === true ? 'forceDelete' : 'delete';
+        $deleteMethod = $this->options->forceDeleteUploads === true ? 'forceDelete' : 'delete';
 
-        if (data_get($this->options, 'replace_previous_uploads') && count($this->uploadIds) > 0) {
+        if ($this->options->replacePreviousUploads && count($this->uploadIds) > 0) {
             $this->uploadable->uploads()
                 ->whereNotIn('id', $this->uploadIds)
                 ->get()
