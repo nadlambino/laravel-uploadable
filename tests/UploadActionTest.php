@@ -27,7 +27,7 @@ function upload_file_for(Model $model, array|UploadedFile|string|null $files = n
     $action->handle($files, $model, $options);
 }
 
-afterEach(function () {
+beforeEach(function () {
     config()->set('uploadable.validate', true);
     config()->set('uploadable.delete_model_on_upload_fail', true);
     config()->set('uploadable.rollback_model_on_upload_fail', true);
@@ -39,9 +39,9 @@ afterEach(function () {
     config()->set('uploadable.temporary_disk', 'local');
     TestPost::$beforeSavingUploadCallback = null;
     TestPost::$disableUpload = false;
-    TestPost::$replacePreviousUploads = false;
+    TestPost::$replacePreviousUploads = null;
     TestPost::$uploadOnQueue = null;
-    TestPost::$validateUploads = true;
+    TestPost::$validateUploads = null;
 });
 
 it('can upload a file for a given model', function () {
@@ -1137,4 +1137,34 @@ it('can manually create the uploaded file using the `updateUploads` method and r
     expect($post->uploads()->count())->toBe(1);
     expect($newTitle)->toBe($post->title);
     expect($post->uploads()->first()->original_name)->toContain('avatar2.jpg');
+});
+
+it('should upload a file on queue when set from the class', function () {
+    Queue::fake();
+    config()->set('uploadable.upload_on_queue', null);
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    TestPost::uploadOnQueue('default');
+    $post = new TestPost();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    Queue::assertPushedOn('default', ProcessUploadJob::class);
+    Queue::assertPushed(ProcessUploadJob::class, function (ProcessUploadJob $job) use ($post) {
+        return $job->model->id === $post->id;
+    });
+    Queue::assertPushed(ProcessUploadJob::class, function (ProcessUploadJob $job) {
+        $job->handle();
+
+        return true;
+    });
+
+    expect($post->uploads()->count())->toBe(1);
+    expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
 });

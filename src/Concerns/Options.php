@@ -92,9 +92,10 @@ trait Options
     {
         return new UploadOptions(
             beforeSavingUploadUsing: static::$beforeSavingUploadCallback,
-            replacePreviousUploads: static::$replacePreviousUploads,
             disableUpload: static::$disableUpload,
             originalAttributes: $this->getOriginal(),
+            replacePreviousUploads: static::$replacePreviousUploads,
+            uploadOnQueue: static::$uploadOnQueue,
         );
     }
 }

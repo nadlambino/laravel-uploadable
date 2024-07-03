@@ -6,6 +6,7 @@ use Laravel\SerializableClosure\SerializableClosure;
 
 /**
  * @property-read bool $replacePreviousUploads
+ * @property-read ?string $uploadOnQueue
  */
 class UploadOptions
 {
@@ -19,15 +20,14 @@ class UploadOptions
 
     public readonly bool $rollbackModelOnQueueUploadFail;
 
-    public readonly ?string $uploadOnQueue;
-
     public readonly string $temporaryDisk;
 
     public function __construct(
         public readonly ?SerializableClosure $beforeSavingUploadUsing = null,
         public readonly bool $disableUpload = false,
         public readonly array $originalAttributes = [],
-        private ?bool $replacePreviousUploads = null
+        private ?bool $replacePreviousUploads = null,
+        private ?string $uploadOnQueue = null
     ) {
         $this->deleteModelOnUploadFail ??= config('uploadable.delete_model_on_upload_fail', true);
         $this->deleteModelOnQueueUploadFail ??= config('uploadable.delete_model_on_queue_upload_fail', false);
