@@ -1138,4 +1138,3 @@ it('can manually create the uploaded file using the `updateUploads` method and r
     expect($newTitle)->toBe($post->title);
     expect($post->uploads()->first()->original_name)->toContain('avatar2.jpg');
 });
-
