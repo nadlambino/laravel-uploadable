@@ -14,6 +14,7 @@ use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomPath;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomRules;
+use NadLambino\Uploadable\Tests\Models\TestPostWithSoftDeletes;
 
 function upload_file_for(Model $model, array|UploadedFile|string|null $files = null, ?UploadOptions $options = null)
 {
@@ -777,3 +778,63 @@ it('should not delete the files from storage when the uploadable model was delet
     expect(Storage::exists($files->path))->toBeTrue();
 });
 
+it('should soft deletes the uploads when the uploadable model was just soft-deleted', function () {
+    config()->set('uploadable.force_delete_uploads', false);
+
+    $post = new TestPostWithSoftDeletes();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    $options = new UploadOptions();
+
+    /** @var Upload $action */
+    $action = app(Upload::class);
+    $action->handle($files, $post, $options);
+
+    $files = $post->uploads()->first();
+
+    $post->delete();
+
+    expect(ModelsUpload::query()->withTrashed()->get())->not->toBeEmpty();
+    expect(Storage::exists($files->path))->toBeTrue();
+});
+
+it('should restore the uploads when the uploadable model was restored', function () {
+    config()->set('uploadable.force_delete_uploads', false);
+
+    $post = new TestPostWithSoftDeletes();
+    $post->title = fake()->sentence();
+    $post->body = fake()->paragraph();
+    $post->save();
+
+    $request = new Request([
+        'image' => UploadedFile::fake()->image('avatar1.jpg'),
+    ]);
+
+    app()->bind('request', fn () => $request);
+
+    $files = $post->getUploads();
+
+    $options = new UploadOptions();
+
+    /** @var Upload $action */
+    $action = app(Upload::class);
+    $action->handle($files, $post, $options);
+
+    $files = $post->uploads()->first();
+
+    $post->delete();
+    $post->restore();
+
+    expect(ModelsUpload::query()->get())->not->toBeEmpty();
+    expect(Storage::exists($files->path))->toBeTrue();
+});

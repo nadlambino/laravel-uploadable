@@ -33,6 +33,7 @@ class TestCase extends Orchestra
             $table->string('title');
             $table->text('body');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

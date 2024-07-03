@@ -22,4 +22,9 @@ trait Events
             throw $exception;
         }
     }
+
+    protected function onRestore(Model $model): void
+    {
+        $model->uploads()->restore();
+    }
 }
