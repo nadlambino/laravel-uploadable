@@ -15,7 +15,8 @@ trait Relations
      */
     public function upload(): MorphOne
     {
-        return $this->morphOne(Upload::class, 'uploadable');
+        return $this->morphOne(Upload::class, 'uploadable')
+            ->limit(1);
     }
 
     /**
