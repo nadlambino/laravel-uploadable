@@ -93,9 +93,23 @@ trait Options
         return new UploadOptions(
             beforeSavingUploadUsing: static::$beforeSavingUploadCallback,
             disableUpload: static::$disableUpload,
-            originalAttributes: $this->getOriginal(),
+            originalAttributes: $this->getOriginalOfAffectedAttributes(),
             replacePreviousUploads: static::$replacePreviousUploads,
             uploadOnQueue: static::$uploadOnQueue,
         );
+    }
+
+    private function getOriginalOfAffectedAttributes(): array
+    {
+        $affectedAttributes = array_keys($this->getChanges());
+
+        if (empty($affectedAttributes)) {
+            return $this->getOriginal();
+        }
+
+        return collect($affectedAttributes)
+            ->map(fn ($attribute) => ['attribute' => $attribute, 'value' => $this->getOriginal($attribute)])
+            ->pluck('value', 'attribute')
+            ->toArray();
     }
 }

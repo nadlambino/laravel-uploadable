@@ -118,7 +118,11 @@ class Upload
             DB::rollBack();
 
             $this->deleteUploadedFilesFromStorage();
-            $this->rollbackModelChanges($this->uploadable);
+
+            /** @var Rollback $rollback */
+            $rollback = app(Rollback::class);
+
+            $rollback->handle($this->uploadable, $this->options);
 
             throw $exception;
         }
@@ -172,63 +176,6 @@ class Upload
     {
         foreach ($this->fullpaths as $fullpath) {
             $this->storage->delete($fullpath);
-        }
-    }
-
-    /**
-     * Rollback the uploadable model's changes.
-     *
-     * @param  Model  $model  The model to rollback.
-     * @param  bool  $forced  Whether the rollback should be forced.
-     */
-    public function rollbackModelChanges(Model $model, bool $forced = false): void
-    {
-        if ($model->wasRecentlyCreated) {
-            $this->deleteUploadableModel($model, $forced);
-
-            return;
-        }
-
-        $this->undoChangesFromUploadableModel($model);
-    }
-
-    /**
-     * Delete the uploadable model.
-     *
-     * @param  Model  $model  The model to delete.
-     * @param  bool  $forced  Whether the deletion should be forced.
-     */
-    private function deleteUploadableModel(Model $model, bool $forced = false): void
-    {
-        $isOnQueue = $this->options->uploadOnQueue !== null;
-
-        if (
-            ($isOnQueue && $this->options->deleteModelOnQueueUploadFail) ||
-            (! $isOnQueue && $this->options->deleteModelOnUploadFail) ||
-            $forced === true
-        ) {
-            DB::table($model->getTable())
-                ->where($model->getKeyName(), $model->{$model->getKeyName()})
-                ->delete();
-        }
-    }
-
-    /**
-     * Undo changes from the uploadable model.
-     *
-     * @param  Model  $model  The model to undo changes from.
-     */
-    private function undoChangesFromUploadableModel(Model $model): void
-    {
-        $isOnQueue = $this->options->uploadOnQueue !== null;
-
-        if (
-            ($isOnQueue && $this->options->rollbackModelOnQueueUploadFail) ||
-            (! $isOnQueue && $this->options->rollbackModelOnUploadFail)
-        ) {
-            $model->fresh()
-                ->forceFill($this->options->originalAttributes)
-                ->updateQuietly();
         }
     }
 

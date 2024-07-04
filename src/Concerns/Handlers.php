@@ -5,6 +5,7 @@ namespace NadLambino\Uploadable\Concerns;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use NadLambino\Uploadable\Actions\Rollback;
 use NadLambino\Uploadable\Actions\Upload;
 use NadLambino\Uploadable\Dto\UploadOptions;
 use NadLambino\Uploadable\Exceptions\UnserializableException;
@@ -64,7 +65,10 @@ trait Handlers
             // The upload action already does its own rollback and we don't want to do it twice.
             // So we only call the rollback if the exception is validation or serialization error.
             if ($exception instanceof ValidationException || $exception instanceof UnserializableException) {
-                $this->uploadAction->rollbackModelChanges($model, $deleteModelOnFail);
+                /** @var \NadLambino\Uploadable\Actions\Rollback $rollback */
+                $rollback = app(Rollback::class);
+
+                $rollback->handle($model, $options, $deleteModelOnFail);
             }
 
             throw $exception;
