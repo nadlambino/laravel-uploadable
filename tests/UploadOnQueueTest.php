@@ -10,7 +10,6 @@ beforeEach(function () {
     reset_config();
 });
 
-
 it('can process the file upload in the queue', function () {
     Queue::fake();
     config()->set('queues.default', 'sync');
