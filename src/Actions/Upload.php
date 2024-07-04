@@ -121,7 +121,6 @@ class Upload
 
             /** @var Rollback $rollback */
             $rollback = app(Rollback::class);
-
             $rollback->handle($this->uploadable, $this->options);
 
             throw $exception;
