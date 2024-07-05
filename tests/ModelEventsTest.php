@@ -238,7 +238,8 @@ it('should rollback the recently updated uploadable model when the upload proces
         $post->fresh()->update([
             'title' => $newTitle = fake()->sentence(),
         ]);
-    } catch (\Throwable) {}
+    } catch (\Throwable) {
+    }
 
     expect($post->title)->not->toBe($newTitle);
     expect($post->uploads()->count())->toBe(1);
@@ -257,7 +258,8 @@ it('should not rollback the recently updated uploadable model when the upload pr
         $post->fresh()->update([
             'title' => $newTitle = fake()->sentence(),
         ]);
-    } catch (\Throwable) {}
+    } catch (\Throwable) {
+    }
 
     expect($post->fresh()->title)->toBe($newTitle);
     expect($post->uploads()->count())->toBe(1);
