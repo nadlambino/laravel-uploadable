@@ -52,7 +52,7 @@ trait Uploadable
      */
     public function createUploads(): void
     {
-        $this::$disableUpload = false;
+        static::$disableUpload = false;
 
         $this->handleCreated($this);
     }
@@ -63,7 +63,7 @@ trait Uploadable
      */
     public function updateUploads(): void
     {
-        $this::$disableUpload = false;
+        static::$disableUpload = false;
 
         $this->handleUpdated($this);
     }
@@ -112,7 +112,7 @@ trait Uploadable
         /** @var \Illuminate\Http\Request $request */
         $request = app('request');
 
-        if ($this::$validateUploads) {
+        if (static::$validateUploads) {
             $validatable = array_filter($rules, fn ($value) => ! empty($value));
             $request->validate($validatable, $this->uploadRuleMessages());
         }
