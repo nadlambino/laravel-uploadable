@@ -46,3 +46,29 @@ it('can upload a file using the `uploadFrom` method providing a string of full p
     expect($post->uploads()->count())->toBe(1);
     expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
 });
+
+it('can upload a file using the `uploadFrom` method providing a mix of string and UploadedFile', function () {
+    $fullpath = UploadedFile::fake()->image('avatar.jpg')->store('tmp', config('uploadable.temporary_disk', 'local'));
+
+    $post = new TestPost();
+    $post->uploadFrom([
+        'images' => [
+            UploadedFile::fake()->image('avatar1.jpg'),
+            UploadedFile::fake()->image('avatar2.jpg'),
+        ],
+        'image' => $fullpath,
+    ]);
+    $post = create_post($post, silently: true);
+
+    $files = $post->getUploads();
+
+    upload_file_for($post, $files);
+
+    expect($post->uploads()->count())->toBe(3);
+
+    $uploads = $post->uploads()->get();
+
+    expect(Storage::exists($uploads[0]->path))->toBeTrue();
+    expect(Storage::exists($uploads[1]->path))->toBeTrue();
+    expect(Storage::exists($uploads[2]->path))->toBeTrue();
+});
