@@ -106,7 +106,7 @@ it('should validate multiple invalid documents', function () {
 
 it('should override the default validation rules and messages', function () {
     create_request_with_files([
-        UploadedFile::fake()->image('avatar1.webp')
+        UploadedFile::fake()->image('avatar1.webp'),
     ]);
 
     $post = create_post(new TestPostWithCustomRules(), silently: true);

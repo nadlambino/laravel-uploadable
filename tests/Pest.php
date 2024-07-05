@@ -61,7 +61,8 @@ function try_silently(\Closure $callback): void
 {
     try {
         $callback();
-    } catch (\Throwable) {}
+    } catch (\Throwable) {
+    }
 }
 
 function create_request_with_files(array $files = [], string $type = 'image'): Request
