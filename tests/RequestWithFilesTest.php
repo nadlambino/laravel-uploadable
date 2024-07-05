@@ -31,6 +31,13 @@ it('can upload multiple files from the request', function () {
     expect($post->uploads()->count())->toBe(2);
 });
 
+it('can upload an image from request from custom request field', function () {
+    create_request_with_files(type: 'avatar');
+    $post = create_post(new TestPostWithCustomRules());
+
+    expect($post->uploads()->count())->toBe(1);
+});
+
 it('should validate a single invalid image', function () {
     create_request_with_files([
         UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),

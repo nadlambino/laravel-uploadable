@@ -15,6 +15,7 @@ class TestPostWithCustomRules extends Model
     {
         return [
             'image' => 'mimes:jpeg,jpg,png',
+            'avatar' => 'image|sometimes',
         ];
     }
 
