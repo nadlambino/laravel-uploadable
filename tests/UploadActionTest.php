@@ -1,19 +1,15 @@
 <?php
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage as FacadesStorage;
 use NadLambino\Uploadable\Actions\Upload;
 use NadLambino\Uploadable\Dto\UploadOptions;
 use NadLambino\Uploadable\Facades\Storage;
-use NadLambino\Uploadable\Jobs\ProcessUploadJob;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomPath;
-use NadLambino\Uploadable\Tests\Models\TestPostWithSoftDeletes;
 
 function upload_file_for(Model $model, array|UploadedFile|string|null $files = null, ?UploadOptions $options = null)
 {
