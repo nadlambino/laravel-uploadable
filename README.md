@@ -301,6 +301,44 @@ public function update(Request $request, Post $post)
 > The process of deleting the previous uploads will only happen when new files were successfully
 > uploaded.
 
+## Uploading files that are not from the request
+
+If you wish to upload a file that is not from the request, you can do so by calling the `uploadFrom` method. This method can accept an instance or an array of `\Illuminate\Http\UploadedFile` or a string path of a file that is uploaded on your `temporary_disk`.
+
+```php
+// DO
+$post->uploadFrom(UploadedFile::fake()->image('avatar1.jpg'));
+
+// OR
+$post->uploadFrom([
+    UploadedFile::fake()->image('avatar1.jpg'),
+    UploadedFile::fake()->image('avatar2.jpg'),
+]);
+
+// OR
+$fullpath = UploadedFile::fake()->image('avatar.jpg')->store('tmp', config('uploadable.temporary_disk', 'local'));
+
+$post->uploadFrom($fullpath);
+
+// OR
+$post->uploadFrom([
+    $fullpath1,
+    $fullpath2
+]);
+
+// OR even a mixed of both
+$post->uploadFrom([
+    UploadedFile::fake()->image('avatar1.jpg'),
+    $fullpath,
+]);
+
+$post->save();
+```
+
+> [!IMPORTANT]
+> 
+> Make sure that you've already validated the files that you're passing here as it does not run any validation like it does when uploading from request.
+
 ## Relation methods
 
 There are already pre-defined relation method for specific upload type.
