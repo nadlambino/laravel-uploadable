@@ -255,11 +255,11 @@ public function update(Request $request, Post $post)
 ```
 > [!IMPORTANT]
 > 
-> Depending on your configuration, the `createUploads` will delete the uploadable model when the upload > process fails, while `updateUploads` will update it to its original attributes.
+> Depending on your configuration, the `createUploads` will delete the uploadable model when the upload process fails, while `updateUploads` will update it to its original attributes.
 
 ## Temporarily disabling the file upload process
 
-You can temporarily disable the file uploads by calling the static method `dontUpload`.
+You can temporarily disable the file uploads by calling the static method `disableUpload`.
 
 ```php
 public function update(Request $request, Post $post)
