@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Queue;
 use NadLambino\Uploadable\Dto\UploadOptions;
+use NadLambino\Uploadable\Facades\Storage;
 use NadLambino\Uploadable\Jobs\ProcessUploadJob;
 use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
@@ -152,4 +153,26 @@ it('should not rollback the changes from uploadable model when an error occurs d
     $post = TestPost::find($post->id);
 
     expect($post->title)->toBe($newTitle);
+});
+
+it('should upload a file on queue when set from the class', function () {
+    Queue::fake();
+    create_request_with_files();
+    config()->set('uploadable.upload_on_queue', null);
+
+    TestPost::uploadOnQueue('default');
+    $post = create_post();
+
+    Queue::assertPushedOn('default', ProcessUploadJob::class);
+    Queue::assertPushed(ProcessUploadJob::class, function (ProcessUploadJob $job) use ($post) {
+        return $job->model->id === $post->id;
+    });
+    Queue::assertPushed(ProcessUploadJob::class, function (ProcessUploadJob $job) {
+        $job->handle();
+
+        return true;
+    });
+
+    expect($post->uploads()->count())->toBe(1);
+    expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
 });

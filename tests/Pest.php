@@ -77,7 +77,18 @@ function create_request_with_files(array $files = [], string $type = 'image'): R
         default => UploadedFile::fake()->image('avatar.jpg'),
     } : $files;
 
+    $files = is_array($files) && count($files) === 1 ? $files[0] : $files;
+
     $request = new Request([$type => $files]);
+
+    app()->bind('request', fn () => $request);
+
+    return $request;
+}
+
+function create_request()
+{
+    $request = new Request();
 
     app()->bind('request', fn () => $request);
 
