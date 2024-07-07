@@ -4,6 +4,8 @@ namespace NadLambino\Uploadable;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\URL;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use NadLambino\Uploadable\Contracts\StorageContract;
 
 class StorageService implements StorageContract
@@ -59,11 +61,19 @@ class StorageService implements StorageContract
      */
     public function temporaryUrl(string $path, int $expiration = 60, array $options = []): ?string
     {
-        try {
-            return $this->filesystem->temporaryUrl($path, now()->addMinutes($expiration), $options);
-        } catch (\Exception) {
-            return $this->url($path);
+        $expiration = now()->addMinutes($expiration);
+
+        if ($this->filesystem->providesTemporaryUrls()) {
+            return $this->filesystem->temporaryUrl($path, $expiration, $options);
         }
+
+        if ($this->filesystem->getAdapter() instanceof LocalFilesystemAdapter) {
+            return URL::temporarySignedRoute(
+                'uploadable.temporary_url', $expiration, ['path' => $path]
+            );
+        }
+
+        return $this->url($path);
     }
 
     /**

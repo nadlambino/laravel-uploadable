@@ -104,6 +104,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Temporary URL
+    |--------------------------------------------------------------------------
+    |
+    | Temporary URL for files that are uploaded locally is not supported by the
+    | local disk. This setting allows you to specify the path and middleware to
+    | access the files temporarily which uses a signed URL under the hood.
+    |
+    */
+    'temporary_url' => [
+        'path' => '/temporary',
+        'middleware' => ['signed'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Allowed Mime Types
     |--------------------------------------------------------------------------
     |
