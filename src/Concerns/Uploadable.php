@@ -47,6 +47,14 @@ trait Uploadable
     }
 
     /**
+     * Get the options for uploading the file in the storage.
+     */
+    public function getUploadStorageOptions(): array
+    {
+        return [];
+    }
+
+    /**
      * You can manually create the uploads when you are sure that the `created` event
      * was not triggered. Otherwise, calling this method might duplicate your uploads.
      */
