@@ -6,7 +6,5 @@ use NadLambino\Uploadable\Events\BeforeUpload as EventsBeforeUpload;
 
 class BeforeUpload
 {
-    public function handle(EventsBeforeUpload $event): void
-    {
-    }
+    public function handle(EventsBeforeUpload $event): void {}
 }

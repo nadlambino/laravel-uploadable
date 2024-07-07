@@ -15,7 +15,5 @@ class CompleteUpload
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Model $uploadable, public Collection $uploads)
-    {
-    }
+    public function __construct(public Model $uploadable, public Collection $uploads) {}
 }

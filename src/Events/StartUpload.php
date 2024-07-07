@@ -14,7 +14,5 @@ class StartUpload
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Model $uploadable, public string $filename, public string $path)
-    {
-    }
+    public function __construct(public Model $uploadable, public string $filename, public string $path) {}
 }

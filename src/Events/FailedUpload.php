@@ -14,7 +14,5 @@ class FailedUpload
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Throwable $exception, public Model $uploadable)
-    {
-    }
+    public function __construct(public Throwable $exception, public Model $uploadable) {}
 }

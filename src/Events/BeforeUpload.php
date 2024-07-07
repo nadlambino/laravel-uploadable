@@ -14,7 +14,5 @@ class BeforeUpload
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Model $uploadable, public array $files, public UploadOptions $options)
-    {
-    }
+    public function __construct(public Model $uploadable, public array $files, public UploadOptions $options) {}
 }

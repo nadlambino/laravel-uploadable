@@ -6,7 +6,5 @@ use NadLambino\Uploadable\Events\FailedUpload as EventsFailedUpload;
 
 class FailedUpload
 {
-    public function handle(EventsFailedUpload $event): void
-    {
-    }
+    public function handle(EventsFailedUpload $event): void {}
 }

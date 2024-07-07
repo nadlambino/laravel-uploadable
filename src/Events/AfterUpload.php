@@ -19,7 +19,5 @@ class AfterUpload implements ShouldDispatchAfterCommit
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Model $uploadable, public Upload $upload)
-    {
-    }
+    public function __construct(public Model $uploadable, public Upload $upload) {}
 }

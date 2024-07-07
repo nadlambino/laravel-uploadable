@@ -6,7 +6,5 @@ use NadLambino\Uploadable\Events\AfterUpload as EventsAfterUpload;
 
 class AfterUpload
 {
-    public function handle(EventsAfterUpload $event): void
-    {
-    }
+    public function handle(EventsAfterUpload $event): void {}
 }

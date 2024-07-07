@@ -6,7 +6,5 @@ use NadLambino\Uploadable\Events\CompleteUpload as EventsCompleteUpload;
 
 class CompleteUpload
 {
-    public function handle(EventsCompleteUpload $event): void
-    {
-    }
+    public function handle(EventsCompleteUpload $event): void {}
 }
