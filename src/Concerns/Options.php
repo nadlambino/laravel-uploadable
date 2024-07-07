@@ -38,6 +38,12 @@ trait Options
     public static ?string $uploadOnQueue = null;
 
     /**
+     * The options for uploading the file in the storage.
+     * This is useful when you want to set the visibility of the file, etc.
+     */
+    public static ?array $uploadStorageOptions = null;
+
+    /**
      * Set the callback that will be called before saving the upload.
      * The callback will receive the upload model and the current model as arguments.
      * This callback has the higher priority than the non-static `beforeSavingUpload` method.
@@ -88,15 +94,32 @@ trait Options
         static::$uploadOnQueue = $queue;
     }
 
+    /**
+     * The options for uploading the file in the storage.
+     */
+    public static function uploadStorageOptions(?array $options = null): void
+    {
+        static::$uploadStorageOptions = $options;
+    }
+
+    /**
+     * The options for the upload process.
+     */
     public function getUploadOptions(): UploadOptions
     {
         return new UploadOptions(
             beforeSavingUploadUsing: static::$beforeSavingUploadCallback,
             disableUpload: static::$disableUpload,
             originalAttributes: $this->getOriginalOfAffectedAttributes(),
+            uploadStorageOtions: $this->getStorageOptions(),
             replacePreviousUploads: static::$replacePreviousUploads,
             uploadOnQueue: static::$uploadOnQueue,
         );
+    }
+
+    private function getStorageOptions(): array
+    {
+        return static::$uploadStorageOptions ?? $this->getUploadStorageOptions();
     }
 
     private function getOriginalOfAffectedAttributes(): array

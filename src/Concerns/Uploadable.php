@@ -21,6 +21,7 @@ trait Uploadable
         static::replacePreviousUploads(static::$replacePreviousUploads ?? config('uploadable.replace_previous_uploads', false));
         static::validateUploads(static::$validateUploads ?? config('uploadable.validate', true));
         static::uploadOnQueue(static::$uploadOnQueue ?? config('uploadable.upload_on_queue', null));
+        static::uploadStorageOptions(static::$uploadStorageOptions);
         static::created(fn ($model) => $model->handleCreated($model));
         static::updated(fn ($model) => $model->handleUpdated($model));
         static::deleted(fn ($model) => $model->handleDeleted($model));

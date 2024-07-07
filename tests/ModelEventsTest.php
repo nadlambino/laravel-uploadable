@@ -4,6 +4,7 @@ use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Facades\Storage;
 use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
+use NadLambino\Uploadable\Tests\Models\TestPostWithCustomStorageOptions;
 use NadLambino\Uploadable\Tests\Models\TestPostWithSoftDeletes;
 
 beforeEach(function () {
@@ -16,6 +17,39 @@ it('can upload a file from request when the uploadable model is created', functi
 
     expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
     expect($post->uploads()->count())->toBe(1);
+});
+
+it('can upload a file with storage options, set from static', function () {
+    create_request_with_files();
+    TestPost::uploadStorageOptions([
+        'visibility' => 'private',
+    ]);
+    $post = create_post();
+
+    expect(invoke_private_method($post, 'getStorageOptions'))->toBe([
+        'visibility' => 'private',
+    ]);
+});
+
+it('can upload a file with storage options, set from the class', function () {
+    create_request_with_files();
+    $post = create_post(new TestPostWithCustomStorageOptions());
+
+    expect(invoke_private_method($post, 'getStorageOptions'))->toBe([
+        'visibility' => 'public',
+    ]);
+});
+
+it('should overried the storage options set from the class when a new option is set statically', function () {
+    create_request_with_files();
+    TestPostWithCustomStorageOptions::uploadStorageOptions([
+        'visibility' => 'private',
+    ]);
+    $post = create_post(new TestPostWithCustomStorageOptions());
+
+    expect(invoke_private_method($post, 'getStorageOptions'))->toBe([
+        'visibility' => 'private',
+    ]);
 });
 
 it('can upload a file using the `uploadFrom` method when the uploadable model is created', function () {
