@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\SerializableClosure\SerializableClosure;
 use NadLambino\Uploadable\Contracts\StorageContract;
 use NadLambino\Uploadable\Dto\UploadOptions;
+use NadLambino\Uploadable\Events\AfterUpload;
+use NadLambino\Uploadable\Events\BeforeUpload;
+use NadLambino\Uploadable\Events\CompleteUpload;
+use NadLambino\Uploadable\Events\FailedUpload;
+use NadLambino\Uploadable\Events\StartUpload;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 
 class Upload
@@ -57,9 +62,13 @@ class Upload
             $files = [$files];
         }
 
+        BeforeUpload::dispatch($this->uploadable, $files, $this->options);
+
         $this->uploads($files);
 
         $this->deletePreviousUploads();
+
+        CompleteUpload::dispatch($this->uploadable, $this->uploadable->uploads()->whereIn('id', $this->uploadIds)->get());
     }
 
     /**
@@ -93,6 +102,8 @@ class Upload
             $path = $this->uploadable->getUploadPath($uploadedFile);
             $filename = $this->uploadable->getUploadFilename($uploadedFile);
 
+            StartUpload::dispatch($this->uploadable, $filename, $path);
+
             $fullpath = $this->storage->upload($uploadedFile, $path, $filename);
             $this->fullpaths[] = $fullpath;
 
@@ -114,6 +125,8 @@ class Upload
             DB::commit();
 
             $this->uploadIds[] = $upload->id;
+
+            AfterUpload::dispatch($this->uploadable, $upload->fresh());
         } catch (\Exception $exception) {
             DB::rollBack();
 
@@ -122,6 +135,8 @@ class Upload
             /** @var Rollback $rollback */
             $rollback = app(Rollback::class);
             $rollback->handle($this->uploadable, $this->options);
+
+            FailedUpload::dispatch($exception, $this->uploadable);
 
             throw $exception;
         }
