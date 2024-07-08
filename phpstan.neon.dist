@@ -2,6 +2,12 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - message: '#Call to an undefined method .*::getUploadPath\(\)#'
+        - message: '#Call to an undefined method .*::getUploadFilename\(\)#'
+        - message: '#Call to an undefined method .*::beforeSavingUpload\(\)#'
+        - message: '#Call to an undefined method .*::uploads\(\)#'
     level: 5
     paths:
         - src
