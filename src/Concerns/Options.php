@@ -111,7 +111,7 @@ trait Options
             beforeSavingUploadUsing: static::$beforeSavingUploadCallback,
             disableUpload: static::$disableUpload,
             originalAttributes: $this->getOriginalOfAffectedAttributes(),
-            uploadStorageOtions: $this->getStorageOptions(),
+            uploadStorageOptions: $this->getStorageOptions(),
             replacePreviousUploads: static::$replacePreviousUploads,
             uploadOnQueue: static::$uploadOnQueue,
         );

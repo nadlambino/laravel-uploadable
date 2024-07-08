@@ -26,7 +26,7 @@ class UploadOptions
         public readonly ?SerializableClosure $beforeSavingUploadUsing = null,
         public readonly bool $disableUpload = false,
         public readonly array $originalAttributes = [],
-        public readonly ?array $uploadStorageOtions = null,
+        public readonly ?array $uploadStorageOptions = null,
         private ?bool $replacePreviousUploads = null,
         private ?string $uploadOnQueue = null
     ) {

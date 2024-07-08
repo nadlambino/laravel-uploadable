@@ -38,7 +38,7 @@ interface StorageContract
      *
      * @param  string  $path  The file to get the temporary URL.
      * @param  int  $expiration  The expiration time in minutes.
-     * @param  array  $options  The options.
+     * @param  array  $options  The storage options.
      * @return string|null The temporary URL.
      */
     public function temporaryUrl(string $path, int $expiration = 60, array $options = []): ?string;

@@ -90,9 +90,11 @@ class Upload
 
             $uploadedFile = $file instanceof UploadedFile ? $file : $this->getUploadedFile($file);
 
+            /** @phpstan-ignore method.undefined */
             $path = $this->uploadable->getUploadPath($uploadedFile);
+            /** @phpstan-ignore method.undefined */
             $filename = $this->uploadable->getUploadFilename($uploadedFile);
-            $storageOptions = $this->options->uploadStorageOtions ?? [];
+            $storageOptions = $this->options->uploadStorageOptions ?? [];
 
             $fullpath = $this->storage->upload($uploadedFile, $path, $filename, $storageOptions);
             $this->fullpaths[] = $fullpath;
@@ -153,6 +155,7 @@ class Upload
         if ($callback instanceof SerializableClosure) {
             $callback($upload, $this->uploadable);
         } else {
+            /** @phpstan-ignore method.undefined */
             $this->uploadable->beforeSavingUpload($upload, $this->uploadable);
         }
     }
