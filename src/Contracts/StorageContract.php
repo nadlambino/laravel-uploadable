@@ -37,11 +37,11 @@ interface StorageContract
      * Get the temporary URL of a file.
      *
      * @param  string  $path  The file to get the temporary URL.
-     * @param  int  $expiration  The expiration time in minutes.
+     * @param  \DateTimeInterface  $expiration  The expiration time in minutes.
      * @param  array  $options  The storage options.
      * @return string|null The temporary URL.
      */
-    public function temporaryUrl(string $path, int $expiration = 60, array $options = []): ?string;
+    public function temporaryUrl(string $path, ?\DateTimeInterface $expiration = null, array $options = []): ?string;
 
     /**
      * Delete a file.

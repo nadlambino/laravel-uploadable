@@ -30,6 +30,7 @@ class UploadableServiceProvider extends PackageServiceProvider
             ->runsMigrations()
             ->hasConfigFile()
             ->hasMigration('create_uploads_table')
+            ->hasRoute('uploadable')
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile()
                     ->publishMigrations()
