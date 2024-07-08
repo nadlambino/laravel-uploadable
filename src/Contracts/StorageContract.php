@@ -12,9 +12,10 @@ interface StorageContract
      * @param  UploadedFile  $file  The file to upload.
      * @param  string|null  $directory  The directory where the file will be stored.
      * @param  string|null  $name  The name of the file.
+     * @param  array  $options  The upload options.
      * @return string|null The path where the file was stored.
      */
-    public function upload(UploadedFile $file, ?string $directory = null, ?string $name = null): ?string;
+    public function upload(UploadedFile $file, ?string $directory = null, ?string $name = null, array $options = []): ?string;
 
     /**
      * Get the file contents.
@@ -37,7 +38,7 @@ interface StorageContract
      *
      * @param  string  $path  The file to get the temporary URL.
      * @param  \DateTimeInterface  $expiration  The expiration time in minutes.
-     * @param  array  $options  The options.
+     * @param  array  $options  The storage options.
      * @return string|null The temporary URL.
      */
     public function temporaryUrl(string $path, \DateTimeInterface $expiration = null, array $options = []): ?string;

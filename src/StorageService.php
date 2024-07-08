@@ -16,11 +16,11 @@ class StorageService implements StorageContract
     /**
      * {@inheritDoc}
      */
-    public function upload(UploadedFile $file, ?string $directory = null, ?string $filename = null): ?string
+    public function upload(UploadedFile $file, ?string $directory = null, ?string $filename = null, array $options = []): ?string
     {
         $filename ??= $file->hashName();
 
-        return $this->filesystem->putFileAs($directory, $file, $filename);
+        return $this->filesystem->putFileAs($directory, $file, $filename, $options);
     }
 
     /**

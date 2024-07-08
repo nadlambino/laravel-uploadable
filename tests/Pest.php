@@ -4,6 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Tests\Models\TestPost;
+use NadLambino\Uploadable\Tests\Models\TestPostWithCustomStorageOptions;
 use NadLambino\Uploadable\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);
@@ -24,6 +25,7 @@ function reset_config(): void
     TestPost::$replacePreviousUploads = null;
     TestPost::$uploadOnQueue = null;
     TestPost::$validateUploads = null;
+    TestPostWithCustomStorageOptions::$uploadStorageOptions = null;
 }
 
 function create_post(?Model $model = null, array $attributes = [], bool $silently = false): Model
@@ -94,4 +96,13 @@ function create_request()
     app()->bind('request', fn () => $request);
 
     return $request;
+}
+
+function invoke_private_method(object $object, string $method, ...$args): mixed
+{
+    $reflection = new ReflectionClass($object);
+    $method = $reflection->getMethod($method);
+    $method->setAccessible(true);
+
+    return $method->invoke($object, ...$args);
 }

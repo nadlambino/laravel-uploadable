@@ -5,7 +5,7 @@ namespace NadLambino\Uploadable\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static ?string upload(\Illuminate\Http\UploadedFile $file, ?string $directory = null, ?string $name = null)
+ * @method static ?string upload(\Illuminate\Http\UploadedFile $file, ?string $directory = null, ?string $name = null, array $options = [])
  * @method static bool exists(string $path)
  * @method static ?string get(string $path)
  * @method static ?string url(string $path)
