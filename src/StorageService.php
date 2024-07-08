@@ -3,6 +3,7 @@
 namespace NadLambino\Uploadable;
 
 use DateTime;
+use DateTimeInterface;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\URL;
@@ -62,15 +63,24 @@ class StorageService implements StorageContract
      */
     public function temporaryUrl(string $path, ?\DateTimeInterface $expiration = null, array $options = []): ?string
     {
-        $expiration = new DateTime($expiration ?? config('uploadable.temporary_url.expiration', '+1 hour'));
+        $expirationFromConfig = config('uploadable.temporary_url.expiration', '1 hour');
+        $applicationTimezone = config('app.timezone', 'UTC');
+        $timezone = new \DateTimeZone($applicationTimezone);
+
+        $expiresAt = match (true) {
+            $expiration instanceof DateTimeInterface => $expiration,
+            $expiration === null && $expirationFromConfig instanceof DateTimeInterface => $expirationFromConfig,
+            $expiration === null && is_string($expirationFromConfig) => new DateTime($expirationFromConfig, $timezone),
+            default => new DateTime('now', $timezone),
+        };
 
         if ($this->filesystem->providesTemporaryUrls()) {
-            return $this->filesystem->temporaryUrl($path, $expiration, $options);
+            return $this->filesystem->temporaryUrl($path, $expiresAt, $options);
         }
 
         if ($this->filesystem->getAdapter() instanceof LocalFilesystemAdapter) {
             return URL::temporarySignedRoute(
-                'uploadable.temporary_url', $expiration, ['path' => $path]
+                'uploadable.temporary_url', $expiresAt, ['path' => $path]
             );
         }
 
