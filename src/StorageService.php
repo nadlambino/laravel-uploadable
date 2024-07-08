@@ -60,7 +60,7 @@ class StorageService implements StorageContract
     /**
      * {@inheritDoc}
      */
-    public function temporaryUrl(string $path, \DateTimeInterface $expiration = null, array $options = []): ?string
+    public function temporaryUrl(string $path, ?\DateTimeInterface $expiration = null, array $options = []): ?string
     {
         $expiration = new DateTime($expiration ?? config('uploadable.temporary_url.expiration', '+1 hour'));
 

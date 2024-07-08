@@ -41,7 +41,7 @@ interface StorageContract
      * @param  array  $options  The storage options.
      * @return string|null The temporary URL.
      */
-    public function temporaryUrl(string $path, \DateTimeInterface $expiration = null, array $options = []): ?string;
+    public function temporaryUrl(string $path, ?\DateTimeInterface $expiration = null, array $options = []): ?string;
 
     /**
      * Delete a file.
