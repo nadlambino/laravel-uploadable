@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Carbon;
 use NadLambino\Uploadable\Facades\Storage;
 
 it('can upload a file', function () {
