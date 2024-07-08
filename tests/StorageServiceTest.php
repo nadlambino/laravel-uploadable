@@ -3,13 +3,11 @@
 use Illuminate\Http\UploadedFile;
 use NadLambino\Uploadable\Facades\Storage;
 
-beforeEach(function () {
-    $file = UploadedFile::fake()->image('avatar.jpg');
-    $this->fullpath = Storage::upload($file);
-});
-
 it('can upload a file', function () {
-    expect($this->fullpath)->not->toBeNull();
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file);
+
+    expect($fullpath)->not->toBeNull();
 });
 
 it('can upload a file with a custom name', function () {
@@ -37,23 +35,47 @@ it('can upload a file with a custom name and path', function () {
     expect($fullpath)->toContain('custom.jpg');
 });
 
+it('can upload a file with options', function () {
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file, options: ['visibility' => 'public']);
+
+    // Unfortunately, there is no way to assert the visibility of the file
+    // and other options as well, so we just check if the file was uploaded.
+    expect($fullpath)->not->toBeNull();
+});
+
 it('can check if a file exists', function () {
-    expect(Storage::exists($this->fullpath))->toBeTrue();
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file);
+
+    expect(Storage::exists($fullpath))->toBeTrue();
 });
 
 it('can get the file contents', function () {
-    expect(Storage::get($this->fullpath))->not->toBeNull();
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file);
+
+    expect(Storage::get($fullpath))->not->toBeNull();
 });
 
 it('can get the file URL', function () {
-    expect(Storage::url($this->fullpath))->not->toBeNull();
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file);
+
+    expect(Storage::url($fullpath))->not->toBeNull();
 });
 
 it('can get the temporary URL of a file', function () {
-    expect(Storage::temporaryUrl($this->fullpath))->not->toBeNull();
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file);
+
+    expect(Storage::temporaryUrl($fullpath))->not->toBeNull();
 });
 
 it('can delete a file', function () {
-    expect(Storage::delete($this->fullpath))->toBeTrue();
-    expect(Storage::exists($this->fullpath))->toBeFalse();
+    $file = UploadedFile::fake()->image('avatar.jpg');
+    $fullpath = Storage::upload($file);
+
+    expect(Storage::delete($fullpath))->toBeTrue();
+    expect(Storage::exists($fullpath))->toBeFalse();
 });

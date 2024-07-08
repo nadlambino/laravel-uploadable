@@ -92,8 +92,9 @@ class Upload
 
             $path = $this->uploadable->getUploadPath($uploadedFile);
             $filename = $this->uploadable->getUploadFilename($uploadedFile);
+            $storageOptions = $this->options->uploadStorageOptions ?? [];
 
-            $fullpath = $this->storage->upload($uploadedFile, $path, $filename);
+            $fullpath = $this->storage->upload($uploadedFile, $path, $filename, $storageOptions);
             $this->fullpaths[] = $fullpath;
 
             $upload = new ModelsUpload();

@@ -26,17 +26,18 @@ class UploadOptions
         public readonly ?SerializableClosure $beforeSavingUploadUsing = null,
         public readonly bool $disableUpload = false,
         public readonly array $originalAttributes = [],
+        public readonly ?array $uploadStorageOptions = null,
         private ?bool $replacePreviousUploads = null,
         private ?string $uploadOnQueue = null
     ) {
-        $this->deleteModelOnUploadFail ??= config('uploadable.delete_model_on_upload_fail', true);
-        $this->deleteModelOnQueueUploadFail ??= config('uploadable.delete_model_on_queue_upload_fail', false);
-        $this->forceDeleteUploads ??= config('uploadable.force_delete_uploads', false);
+        $this->deleteModelOnUploadFail = config('uploadable.delete_model_on_upload_fail', true);
+        $this->deleteModelOnQueueUploadFail = config('uploadable.delete_model_on_queue_upload_fail', false);
+        $this->forceDeleteUploads = config('uploadable.force_delete_uploads', false);
         $this->replacePreviousUploads ??= config('uploadable.replace_previous_uploads', false);
-        $this->rollbackModelOnUploadFail ??= config('uploadable.rollback_model_on_upload_fail', true);
-        $this->rollbackModelOnQueueUploadFail ??= config('uploadable.rollback_model_on_queue_upload_fail', false);
+        $this->rollbackModelOnUploadFail = config('uploadable.rollback_model_on_upload_fail', true);
+        $this->rollbackModelOnQueueUploadFail = config('uploadable.rollback_model_on_queue_upload_fail', false);
         $this->uploadOnQueue ??= config('uploadable.upload_on_queue', null);
-        $this->temporaryDisk ??= config('uploadable.temporary_disk', 'local');
+        $this->temporaryDisk = config('uploadable.temporary_disk', 'local');
     }
 
     /**
