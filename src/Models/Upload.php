@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use NadLambino\Uploadable\Contracts\StorageContract;
 
+/**
+ * @property string $path
+ * @property string $name
+ * @property string $original_name
+ * @property string $extension
+ * @property int|float|string $size
+ * @property string $type
+ */
 class Upload extends Model
 {
     use SoftDeletes;
