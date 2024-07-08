@@ -115,6 +115,7 @@ return [
     'temporary_url' => [
         'path' => '/temporary',
         'middleware' => ['signed'],
+        'expiration' => '+5 minutes',
     ],
 
     /*
