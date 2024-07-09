@@ -34,6 +34,11 @@ class Upload
     private array $fullpaths = [];
 
     /**
+     * The models that should be ignored during the upload process.
+     */
+    protected static array $disabledModels = [];
+
+    /**
      * The ids of the uploaded files.
      */
     private array $uploadIds = [];
@@ -54,7 +59,7 @@ class Upload
         $this->uploadable = $uploadable;
         $this->options = $options ?? app(UploadOptions::class);
 
-        if ($this->options->disableUpload === true) {
+        if ($this->shouldNotProceed()) {
             return;
         }
 
@@ -69,6 +74,31 @@ class Upload
         $this->deletePreviousUploads();
 
         CompleteUpload::dispatch($this->uploadable, $this->uploadable->uploads()->whereIn('id', $this->uploadIds)->get());
+    }
+
+    /**
+     * Disable the upload process for the given models.
+     */
+    public static function disableFor(string|array $models): void
+    {
+        self::$disabledModels = is_array($models) ? $models : [$models];
+    }
+
+    /**
+     * Enable the upload process for the given models.
+     */
+    public static function enableFor(string|array $models): void
+    {
+        self::$disabledModels = array_diff(self::$disabledModels, is_array($models) ? $models : [$models]);
+    }
+
+    /**
+     * Check if the upload process should not proceed.
+     */
+    private function shouldNotProceed(): bool
+    {
+        return $this->options->disableUpload === true ||
+            in_array(get_class($this->uploadable), static::$disabledModels);
     }
 
     /**

@@ -1,9 +1,12 @@
 <?php
 
 use Illuminate\Http\UploadedFile;
+use NadLambino\Uploadable\Actions\Upload as ActionsUpload;
 use NadLambino\Uploadable\Facades\Storage;
 use NadLambino\Uploadable\Models\Upload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
+use NadLambino\Uploadable\Tests\Models\TestPostWithCustomFilename;
+use NadLambino\Uploadable\Tests\Models\TestPostWithCustomPath;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomStorageOptions;
 use NadLambino\Uploadable\Tests\Models\TestPostWithSoftDeletes;
 
@@ -17,6 +20,65 @@ it('can upload a file from request when the uploadable model is created', functi
 
     expect(Storage::exists($post->uploads()->first()->path))->toBeTrue();
     expect($post->uploads()->count())->toBe(1);
+});
+
+it('should not upload the file for a model that was added to the disabled list', function () {
+    create_request_with_files();
+    ActionsUpload::disableFor(TestPostWithCustomFilename::class);
+    $post = create_post(new TestPost());
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(0);
+});
+
+it('should not upload the file for the models that were added to the disabled list', function () {
+    create_request_with_files();
+    ActionsUpload::disableFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $post = create_post(new TestPost());
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+    $anotherPost2 = create_post(new TestPostWithCustomPath());
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(0);
+    expect($anotherPost2->uploads()->count())->toBe(0);
+});
+
+it('should upload the file for the model that was previously added to the disabled list but then enabled', function () {
+    create_request_with_files();
+    ActionsUpload::disableFor(TestPostWithCustomFilename::class);
+    $post = create_post(new TestPost());
+    ActionsUpload::enableFor(TestPostWithCustomFilename::class);
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(1);
+});
+
+it('should upload the file for the model that was previously added to the disabled list including with other models but then enabled', function () {
+    create_request_with_files();
+    ActionsUpload::disableFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $post = create_post(new TestPost());
+    ActionsUpload::enableFor(TestPostWithCustomFilename::class);
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+    $anotherPost2 = create_post(new TestPostWithCustomPath());
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(1);
+    expect($anotherPost2->uploads()->count())->toBe(0);
+});
+
+it('should upload the file for the models that were previously added to the disabled list but then enabled', function () {
+    create_request_with_files();
+    ActionsUpload::disableFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $post = create_post(new TestPost());
+    ActionsUpload::enableFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+    $anotherPost2 = create_post(new TestPostWithCustomPath());
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(1);
+    expect($anotherPost2->uploads()->count())->toBe(1);
 });
 
 it('can upload a file with storage options, set from static', function () {

@@ -3,6 +3,7 @@
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use NadLambino\Uploadable\Actions\Upload;
 use NadLambino\Uploadable\Tests\Models\TestPost;
 use NadLambino\Uploadable\Tests\Models\TestPostWithCustomStorageOptions;
 use NadLambino\Uploadable\Tests\TestCase;
@@ -28,6 +29,7 @@ function reset_config(): void
     TestPost::$uploadOnQueue = null;
     TestPost::$validateUploads = null;
     TestPostWithCustomStorageOptions::$uploadStorageOptions = null;
+    Upload::disableFor([]);
 }
 
 function create_post(?Model $model = null, array $attributes = [], bool $silently = false): Model
