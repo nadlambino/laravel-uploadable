@@ -2,7 +2,7 @@
 
 All notable changes to `uploadable` will be documented in this file.
 
-## [v1.0.1] - Unrelease
+## [v1.1.0] - Unrelease
 
 ### Added
 - [Support for storage options for uploading files](https://github.com/nadlambino/laravel-uploadable/commit/ccc5c441efea8cf3b23d11e1684549294b2639ea)
@@ -13,7 +13,7 @@ All notable changes to `uploadable` will be documented in this file.
 - [Improve temporary URL support for locally uploaded files](https://github.com/nadlambino/laravel-uploadable/commit/407ee133513530e5a87dc9782eb0fb5f9fc8f9d3)
 - [Add more supported files in default mime validation](https://github.com/nadlambino/laravel-uploadable/commit/0523ffebc662d98b57ba3b02fa5c42ea17b03ba4)
 
-## [v1.0.0] - 2024-07-06 - 2024-07-06
+## [v1.0.0] - 2024-07-06
 
 ### Changes
 
