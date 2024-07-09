@@ -110,12 +110,13 @@ return [
     | Temporary URL for files that are uploaded locally is not supported by the
     | local disk. This setting allows you to specify the path and middleware to
     | access the files temporarily which uses a signed URL under the hood.
+    | `expiration` can be a string or an instance of `DateTimeInterface`.
     |
     */
     'temporary_url' => [
         'path' => '/temporary',
         'middleware' => ['signed'],
-        'expiration' => '+5 minutes',
+        'expiration' => '1 hour',
     ],
 
     /*

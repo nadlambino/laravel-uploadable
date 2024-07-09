@@ -20,6 +20,8 @@ function reset_config(): void
     config()->set('uploadable.delete_model_on_queue_upload_fail', false);
     config()->set('uploadable.rollback_model_on_queue_upload_fail', false);
     config()->set('uploadable.temporary_disk', 'local');
+    config()->set('uploadable.temporary_url.expiration', '1 hour');
+    config()->set('app.timezone', 'UTC');
     TestPost::$beforeSavingUploadCallback = null;
     TestPost::$disableUpload = false;
     TestPost::$replacePreviousUploads = null;
