@@ -79,17 +79,23 @@ class Upload
     /**
      * Disable the upload process for the given models.
      */
-    public static function disableFor(string|array $models): void
+    public static function disableFor(string|array|Model $models): void
     {
-        self::$disabledModels = is_array($models) ? $models : [$models];
+        self::$disabledModels = array_unique(is_array($models) ? $models : [$models]);
     }
 
     /**
      * Enable the upload process for the given models.
      */
-    public static function enableFor(string|array $models): void
+    public static function enableFor(string|array|Model $models): void
     {
-        self::$disabledModels = array_diff(self::$disabledModels, is_array($models) ? $models : [$models]);
+        if ($models instanceof Model) {
+            self::$disabledModels = collect(static::$disabledModels)->filter(function ($model) use ($models) {
+                return $model instanceof $models && $model->getKey() !== $models->getKey();
+            })->toArray();
+        } else {
+            self::$disabledModels = array_diff(self::$disabledModels, is_array($models) ? $models : [$models]);
+        }
     }
 
     /**
@@ -98,7 +104,10 @@ class Upload
     private function shouldNotProceed(): bool
     {
         return $this->options->disableUpload === true ||
-            in_array(get_class($this->uploadable), static::$disabledModels);
+            in_array(get_class($this->uploadable), static::$disabledModels) ||
+            collect(static::$disabledModels)->first(function ($model) {
+                return $model instanceof $this->uploadable && $model->getKey() === $this->uploadable->getKey();
+            }) !== null;
     }
 
     /**

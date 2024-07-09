@@ -81,6 +81,31 @@ it('should upload the file for the models that were previously added to the disa
     expect($anotherPost2->uploads()->count())->toBe(1);
 });
 
+it('should accept a model instance when disabling the upload process', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post = create_post(new TestPost(), silently: true);
+    ActionsUpload::disableFor($post);
+    $updatePost = update_post($post);
+    $anotherPost = create_post(new TestPost());
+
+    expect($updatePost->uploads()->count())->toBe(0);
+    expect($anotherPost->uploads()->count())->toBe(1);
+});
+
+it('should accept a model instance when enabling the upload process', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post = create_post(new TestPost(), silently: true);
+    ActionsUpload::disableFor(TestPost::class);
+    ActionsUpload::enableFor($post);
+    $updatePost = update_post($post);
+    $anotherPost = create_post(new TestPost());
+
+    expect($updatePost->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(1);
+});
+
 it('can upload a file with storage options, set from static', function () {
     create_request_with_files();
     TestPost::uploadStorageOptions([
