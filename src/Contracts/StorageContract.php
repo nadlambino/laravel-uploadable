@@ -37,7 +37,7 @@ interface StorageContract
      * Get the temporary URL of a file.
      *
      * @param  string  $path  The file to get the temporary URL.
-     * @param  \DateTimeInterface  $expiration  The expiration time in minutes.
+     * @param  \DateTimeInterface  $expiration  The expiration date.
      * @param  array  $options  The storage options.
      * @return string|null The temporary URL.
      */
