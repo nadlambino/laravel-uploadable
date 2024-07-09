@@ -90,9 +90,7 @@ class Upload
     public static function enableFor(string|array|Model $models): void
     {
         if ($models instanceof Model) {
-            self::$disabledModels = collect(static::$disabledModels)->filter(function ($model) use ($models) {
-                return $model instanceof $models && $model->getKey() !== $models->getKey();
-            })->toArray();
+            self::$disabledModels = array_filter(self::$disabledModels, fn ($model) => ! $model instanceof $models || $model->getKey() !== $models->getKey());
         } else {
             self::$disabledModels = array_diff(self::$disabledModels, is_array($models) ? $models : [$models]);
         }
