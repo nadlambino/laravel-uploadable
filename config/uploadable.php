@@ -121,16 +121,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Allowed Mime Types
+    | Allowed Mimes by Extension
     |--------------------------------------------------------------------------
     |
-    | Specify the mime types allowed for uploads. Supports categorization
-    | for images, videos, and documents with specific file extensions.
+    | Specify the mime types by extension that is allowed for uploads. Supports
+    | categorization for images, videos, and documents with specific file
+    | extensions.
     |
     */
     'mimes' => [
-        'image' => ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg', 'webp'],
-        'video' => ['mp4', 'avi', 'mov', 'wmv', 'flv', '3gp', 'mkv'],
+        'image' => ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico'],
+        'video' => ['mp4', 'webm', 'avi', 'mov', 'wmv', 'flv', '3gp', 'mkv', 'mpg', 'mpeg'],
         'document' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'],
     ],
 ];
