@@ -34,14 +34,14 @@ class Upload
     private array $fullpaths = [];
 
     /**
-     * The models that should be ignored during the upload process.
-     */
-    protected static array $disabledModels = [];
-
-    /**
      * The ids of the uploaded files.
      */
     private array $uploadIds = [];
+
+    /**
+     * The models that should be ignored during the upload process.
+     */
+    public static array $disabledModels = [];
 
     public function __construct(private StorageContract $storage) {}
 
@@ -58,6 +58,8 @@ class Upload
     {
         $this->uploadable = $uploadable;
         $this->options = $options ?? app(UploadOptions::class);
+
+        $this->setDisabledModelsWhenOnQueue();
 
         if ($this->shouldNotProceed()) {
             return;
@@ -93,6 +95,16 @@ class Upload
             self::$disabledModels = array_filter(self::$disabledModels, fn ($model) => ! $model instanceof $models || $model->getKey() !== $models->getKey());
         } else {
             self::$disabledModels = array_diff(self::$disabledModels, is_array($models) ? $models : [$models]);
+        }
+    }
+
+    /**
+     * Set the models that should be ignored during the upload process on queue.
+     */
+    private function setDisabledModelsWhenOnQueue(): void
+    {
+        if (! is_null($this->options->uploadOnQueue)) {
+            static::$disabledModels = $this->options->disabledModels;
         }
     }
 

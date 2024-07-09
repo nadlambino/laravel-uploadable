@@ -3,6 +3,7 @@
 namespace NadLambino\Uploadable\Dto;
 
 use Laravel\SerializableClosure\SerializableClosure;
+use NadLambino\Uploadable\Actions\Upload;
 
 /**
  * @property-read bool $replacePreviousUploads
@@ -22,6 +23,8 @@ class UploadOptions
 
     public readonly string $temporaryDisk;
 
+    public readonly array $disabledModels;
+
     public function __construct(
         public readonly ?SerializableClosure $beforeSavingUploadUsing = null,
         public readonly bool $disableUpload = false,
@@ -32,6 +35,7 @@ class UploadOptions
     ) {
         $this->deleteModelOnUploadFail = config('uploadable.delete_model_on_upload_fail', true);
         $this->deleteModelOnQueueUploadFail = config('uploadable.delete_model_on_queue_upload_fail', false);
+        $this->disabledModels = Upload::$disabledModels;
         $this->forceDeleteUploads = config('uploadable.force_delete_uploads', false);
         $this->replacePreviousUploads ??= config('uploadable.replace_previous_uploads', false);
         $this->rollbackModelOnUploadFail = config('uploadable.rollback_model_on_upload_fail', true);
