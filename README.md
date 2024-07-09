@@ -5,6 +5,26 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/nadlambino/uploadable/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/nadlambino/uploadable/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/nadlambino/uploadable.svg?style=flat-square)](https://packagist.org/packages/nadlambino/uploadable)
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Customizing the File Name and Upload Path](#customizing-the-file-name-and-upload-path)
+- [Uploading Files with Custom Options for the Storage](#uploading-files-with-custom-options-for-the-storage)
+- [Manually Processing File Uploads](#manually-processing-file-uploads)
+- [Temporarily Disable the File Upload Process](#temporarily-disabling-the-file-upload-process)
+- [Uploading Files on Model Update](#uploading-files-on-model-update)
+- [Uploading Files that are NOT from the Request](#uploading-files-that-are-not-from-the-request)
+- [Relation Methods](#relation-methods)
+- [Lifecycle and Events](#lifecycle-and-events)
+- [Queueing](#queueing)
+- [Testing](#testing)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
+- [Security Vulnerabilities](#security-vulnerabilities)
+- [Credits](#credits)
+- [License](#license)
+
 ## Installation
 
 You can install the package via composer:
@@ -142,16 +162,34 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Allowed Mime Types
+    | Temporary URL
     |--------------------------------------------------------------------------
     |
-    | Specify the mime types allowed for uploads. Supports categorization
-    | for images, videos, and documents with specific file extensions.
+    | Temporary URL for files that are uploaded locally is not supported by the
+    | local disk. This setting allows you to specify the path and middleware to
+    | access the files temporarily which uses a signed URL under the hood.
+    | `expiration` can be a string or an instance of `DateTimeInterface`.
+    |
+    */
+    'temporary_url' => [
+        'path' => '/temporary',
+        'middleware' => ['signed'],
+        'expiration' => '1 hour',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Allowed Mimes by Extension
+    |--------------------------------------------------------------------------
+    |
+    | Specify the mime types by extension that is allowed for uploads. Supports
+    | categorization for images, videos, and documents with specific file
+    | extensions.
     |
     */
     'mimes' => [
-        'image' => ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg', 'webp'],
-        'video' => ['mp4', 'avi', 'mov', 'wmv', 'flv', '3gp', 'mkv'],
+        'image' => ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico'],
+        'video' => ['mp4', 'webm', 'avi', 'mov', 'wmv', 'flv', '3gp', 'mkv', 'mpg', 'mpeg'],
         'document' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'],
     ],
 ];
@@ -236,6 +274,20 @@ public function getUploadPath(UploadedFile $file): string
 > 
 > Make sure that the file name is completely unique to avoid overriding existing files.
 
+## Uploading Files with Custom Options for the Storage
+
+When you're uploading your files on cloud storage, oftentimes you want to provide options like visibility, cache control, and other metadata. To do so, you can define the `getUploadStorageOptions` in your uploadable model.
+
+```php
+public function getUploadStorageOptions(): array
+{
+    return [
+        'visibility' => 'public',
+        'CacheControl' => 'max-age=315360000, no-transform, public'
+    ];
+}
+```
+
 ## Manually processing file uploads
 
 File upload happens when the uploadable model's `created` or `updated` event was fired.
@@ -246,7 +298,7 @@ public function update(Request $request, Post $post)
 {
     $post->update($request->all());
     
-    // When the post did not change, the `updated` event won't be fired.
+    // If the post did not change, the `updated` event won't be fired.
     // So, we need to manually call the `updateUploads` method.
     if (! $post->wasChanged()) {
         $post->updateUploads();
@@ -257,7 +309,7 @@ public function update(Request $request, Post $post)
 > 
 > Depending on your configuration, the `createUploads` will delete the uploadable model when the upload process fails, while `updateUploads` will update it to its original attributes.
 
-## Temporarily disabling the file upload process
+## Temporarily Disable the File Upload Process
 
 You can temporarily disable the file uploads by calling the static method `disableUpload`.
 
@@ -275,6 +327,48 @@ public function update(Request $request, Post $post)
     $post->updateUploads();
 }
 ```
+
+### Caveat
+
+When you are trying to create or update multiple uploadable models, the default behavior of this package is that all of the files from the request will be uploaded and will be attached to all of these models. This is because these models are firing the `created` or `updated` event which triggers the upload process. There are multiple ways to prevent this from happening such as:
+
+- Silently create or update the models that you don't want to have the files being uploaded and attached to them. By doing so, the `created` or `updated` event won't be fired which will not trigger the upload process.
+- Disable the upload process on the specific model by calling the `disableUpload()` method.
+- Disable the upload process from the `NadLambino\Uploadable\Actions\Upload` action itself. The `NadLambino\Uploadable\Actions\Upload::disableFor()` method can accept a string class name of a model, a model instance, or an array of each or both. See below example:
+
+```php
+use NadLambino\Uploadable\Actions\Upload;
+
+public function store(Request $request)
+{
+    // Disable the uploads for all of the instances of Post model during this request lifecycle
+    Upload::disableFor(Post::class);
+
+    // User will be created with the files being uploaded and attached to it
+    User::create($request->validated());
+
+    // Post will be created without the files being uploaded and attached to it
+    Post::create(...);
+}
+
+// OR
+
+public function update(Request $request, User $user)
+{
+     // Disable the uploads only for this specific user during this request lifecycle
+    Upload::disableFor($user);
+
+    // $user will be updated without the files being uploaded and attached to it
+    $user->update($request->validated());
+    
+    $anotherUser = User::find(...);
+
+    // $anotherUser will be updated with the files being uploaded and attached to it
+    $anotherUser->update(...);
+}
+```
+
+Also, there is `NadLambino\Uploadable\Actions\Upload::enableFor()` method to let you enable the upload process for the given model. This will just remove the given model class or instance from the list of disabled models. Both of these methods will also work on queued uploads.
 
 ## Uploading files on model update
 
@@ -301,7 +395,7 @@ public function update(Request $request, Post $post)
 > The process of deleting the previous uploads will only happen when new files were successfully
 > uploaded.
 
-## Uploading files that are not from the request
+## Uploading files that are NOT from the request
 
 If you wish to upload a file that is not from the request, you can do so by calling the `uploadFrom` method. This method can accept an instance or an array of `\Illuminate\Http\UploadedFile` or a string path of a file that is uploaded on your `temporary_disk`.
 
@@ -373,9 +467,19 @@ public function documents(): MorphMany { }
 > 
 > MorphOne relation method sets a limit of one in the query.
 
-## Lifecycle
+## Lifecycle and Events
 
-If you want to do something before the file upload data is stored to the `uploads` table, you can define the `beforeSavingUpload` public method in your model. This method will be called after the file is uploaded and before the file details is saved in the database.
+During the entire process of uploading your files, events are being fired in each step. This comes very helpful if you need to do something in between these steps or just for debugging purposes.
+
+| Event                                              | When It Is Fired                       | What The Event Receives When Dispatched |
+|----------------------------------------------------|----------------------------------------|-----------------------------------------|
+| `NadLambino\Uploadable\Events\BeforeUpload::class` | Fired before the upload process starts | `Model $uploadable`, `array $files`, `UploadOptions $options` |
+| `NadLambino\Uploadable\Events\StartUpload::class`  | Fired when the upload process has started and its about to upload the first file in the list. This event may fired up multiple times depending on the number of files that is being uploaded | `Model $uploadable`, `string $filename`, `string $path` |
+| `NadLambino\Uploadable\Events\AfterUpload::class` | Fired when the file was successfully uploaded and file information has been stored in the `uploads` table. This event may fired up multiple times depending on the number of files that is being uploaded | `Model $uploadable`, `Upload $upload` |
+| `NadLambino\Uploadable\Events\CompleteUpload::class` | Fired when all of the files are uploaded and all of the necessary clean ups has been made | `Model $uploadable`, `Collection $uploads` |
+| `NadLambino\Uploadable\Events\FailedUpload::class` | Fired when an exception was thrown while trying to upload a specific file. | `Throwable $exception`, `Model $uploadable` |
+
+If you want to do something before the file information is stored to the `uploads` table, you can define the `beforeSavingUpload` public method in your model. This method will be called after the file is uploaded in the storage and before the file information is saved in the database.
 
 ```php
 public function beforeSavingUpload(Upload $upload, Model $model) : void
@@ -387,6 +491,7 @@ public function beforeSavingUpload(Upload $upload, Model $model) : void
 Alternatively, you can statically call the `beforeSavingUploadUsing` method and pass a closure.
 The closure will receive the same parameters as the `beforeSavingUpload` method.
 Just make sure that you call this method before creating or updating the uploadable model.
+Also, `beforeSavingUploadUsing` has the higher precedence than the `beforeSavingUpload` allowing you to override it when needed.
 
 ```php
 Post::beforeSavingUploadUsing(function (Upload $upload, Post $model) use ($value) {
