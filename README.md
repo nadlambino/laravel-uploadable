@@ -9,6 +9,7 @@
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [Customizing the Rules and Messages](#customizing-the-rules-and-messages)
 - [Customizing the File Name and Upload Path](#customizing-the-file-name-and-upload-path)
 - [Uploading Files with Custom Options for the Storage](#uploading-files-with-custom-options-for-the-storage)
 - [Manually Processing File Uploads](#manually-processing-file-uploads)
@@ -212,6 +213,8 @@ class Post extends Model
 ```
 
 Now, everytime you create or update a post, it will automatically upload the files that are included in your request and it will save the details in `uploads` table.
+
+## Customizing the Rules and Messages
 
 Files from the request should have the following request names:
 
