@@ -2,7 +2,7 @@
 
 All notable changes to `uploadable` will be documented in this file.
 
-## [v1.1.0] - Unrelease
+## [v1.1.0] - 2024-07-10
 
 ### Added
 - [Support for storage options for uploading files](https://github.com/nadlambino/laravel-uploadable/commit/ccc5c441efea8cf3b23d11e1684549294b2639ea)
