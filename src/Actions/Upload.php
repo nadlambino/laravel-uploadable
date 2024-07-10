@@ -43,6 +43,11 @@ class Upload
      */
     public static array $disabledModels = [];
 
+    /**
+     * The only allowed models to process the file uploads.
+     */
+    public static array $onlyModels = [];
+
     public function __construct(private StorageContract $storage) {}
 
     /**
@@ -60,6 +65,7 @@ class Upload
         $this->options = $options ?? app(UploadOptions::class);
 
         $this->setDisabledModelsWhenOnQueue();
+        $this->setEnabledModelsWhenOnQueue();
 
         if ($this->shouldNotProceed()) {
             return;
@@ -99,6 +105,14 @@ class Upload
     }
 
     /**
+     * Only process the upload for the given models.
+     */
+    public static function onlyFor(string|array|Model $models): void
+    {
+        self::$onlyModels = is_array($models) ? $models : [$models];
+    }
+
+    /**
      * Set the models that should be ignored during the upload process on queue.
      */
     private function setDisabledModelsWhenOnQueue(): void
@@ -109,13 +123,50 @@ class Upload
     }
 
     /**
+     * Set the only allowed models to process the file uploads on queue.
+     */
+    private function setEnabledModelsWhenOnQueue(): void
+    {
+        if (! is_null($this->options->uploadOnQueue)) {
+            static::$onlyModels = $this->options->onlyModels;
+        }
+    }
+
+    /**
      * Check if the upload process should not proceed.
      */
     private function shouldNotProceed(): bool
     {
-        return $this->options->disableUpload === true ||
+        return
+            // Should not proceed if the upload is disabled.
+            $this->options->disableUpload === true ||
+
+            // Should not proceed if the uploadable model class is included from the list of disabled models.
             in_array(get_class($this->uploadable), static::$disabledModels) ||
+
+            // Should not proceed if the uploadable model instance is included from the list of disabled models.
             collect(static::$disabledModels)->first(function ($model) {
+                return $model instanceof $this->uploadable && $model->getKey() === $this->uploadable->getKey();
+            }) !== null ||
+
+            // Should not proceed if the $onlyModels is not empty and the uploadable model is not included from the list of enabled models.
+            ! $this->isUploadableModelEnabled();
+    }
+
+    /**
+     * Check if the uploadable model is included from the list of enabled models.
+     */
+    private function isUploadableModelEnabled(): bool
+    {
+        return
+            // The given uploadable model is considered as enabled when the $onlyModels is empty.
+            empty(static::$onlyModels) ||
+
+            // The given uploadable model is considered as enabled when the uploadable model class is included from the list of enabled models.
+            in_array(get_class($this->uploadable), static::$onlyModels) ||
+
+            // The given uploadable model is considered as enabled when the uploadable model instance is included from the list of enabled models.
+            collect(static::$onlyModels)->first(function ($model) {
                 return $model instanceof $this->uploadable && $model->getKey() === $this->uploadable->getKey();
             }) !== null;
     }

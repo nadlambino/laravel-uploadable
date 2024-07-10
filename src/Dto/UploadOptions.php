@@ -25,6 +25,8 @@ class UploadOptions
 
     public readonly array $disabledModels;
 
+    public readonly array $onlyModels;
+
     public function __construct(
         public readonly ?SerializableClosure $beforeSavingUploadUsing = null,
         public readonly bool $disableUpload = false,
@@ -37,6 +39,7 @@ class UploadOptions
         $this->deleteModelOnQueueUploadFail = config('uploadable.delete_model_on_queue_upload_fail', false);
         $this->disabledModels = Upload::$disabledModels;
         $this->forceDeleteUploads = config('uploadable.force_delete_uploads', false);
+        $this->onlyModels = Upload::$onlyModels;
         $this->replacePreviousUploads ??= config('uploadable.replace_previous_uploads', false);
         $this->rollbackModelOnUploadFail = config('uploadable.rollback_model_on_upload_fail', true);
         $this->rollbackModelOnQueueUploadFail = config('uploadable.rollback_model_on_queue_upload_fail', false);
