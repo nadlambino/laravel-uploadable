@@ -2,6 +2,14 @@
 
 All notable changes to `uploadable` will be documented in this file.
 
+## [v1.1.1] - 2024-07-11
+
+### Added
+- [Add `onlyFor` method to specifically process the upload for the given model](https://github.com/nadlambino/laravel-uploadable/commit/86861116729f347af4d2b0458f2c7db7d6b56e16)
+
+### Changed
+- [Amend `run-tests.yml` to fix failing tests on github workflow](https://github.com/nadlambino/laravel-uploadable/commit/1acce3834f1b9c5e5b6ea2ccbad06dc1d26009a7)
+
 ## [v1.1.0] - 2024-07-10
 
 ### Added
