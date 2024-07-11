@@ -30,6 +30,7 @@ function reset_config(): void
     TestPost::$validateUploads = null;
     TestPostWithCustomStorageOptions::$uploadStorageOptions = null;
     Upload::disableFor([]);
+    Upload::onlyFor([]);
 }
 
 function create_post(?Model $model = null, array $attributes = [], bool $silently = false): Model

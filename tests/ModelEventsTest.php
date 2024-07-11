@@ -133,6 +133,70 @@ it('should only enable the upload for the specific model instance', function () 
     expect($updatePost2->uploads()->count())->toBe(0);
 });
 
+it('should upload the file only for the given model class', function () {
+    create_request_with_files();
+    ActionsUpload::onlyFor(TestPostWithCustomFilename::class);
+    $post = create_post(new TestPost());
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+
+    expect($post->uploads()->count())->toBe(0);
+    expect($anotherPost->uploads()->count())->toBe(1);
+});
+
+it('should upload the file only for the given model classes', function () {
+    create_request_with_files();
+    ActionsUpload::onlyFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $post = create_post(new TestPost());
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+    $anotherPost2 = create_post(new TestPostWithCustomPath());
+
+    expect($post->uploads()->count())->toBe(0);
+    expect($anotherPost->uploads()->count())->toBe(1);
+    expect($anotherPost2->uploads()->count())->toBe(1);
+});
+
+it('should upload the file only for the given model instance', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post = create_post(new TestPost(), silently: true);
+    ActionsUpload::onlyFor($post);
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+    $updatePost = update_post($post);
+
+    expect($updatePost->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(0);
+});
+
+it('should upload the file only for the given model instances', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post1 = create_post(new TestPost(), ['title' => 'Post 1'], silently: true);
+    $post2 = create_post(new TestPost(), ['title' => 'Post 2'], silently: true);
+    ActionsUpload::onlyFor([$post1, $post2]);
+    $updatePost1 = update_post($post1);
+    $updatePost2 = update_post($post2);
+    $post3 = create_post(new TestPost());
+
+    expect($updatePost1->uploads()->count())->toBe(1);
+    expect($updatePost2->uploads()->count())->toBe(1);
+    expect($post3->uploads()->count())->toBe(0);
+});
+
+it('should upload the file only for the given model instance and class', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post1 = create_post(new TestPost(), ['title' => 'Post 1'], silently: true);
+    $post2 = create_post(new TestPost(), ['title' => 'Post 2'], silently: true);
+    ActionsUpload::onlyFor([$post1, TestPostWithCustomFilename::class]);
+    $updatePost1 = update_post($post1);
+    $updatePost2 = update_post($post2);
+    $anotherPost = create_post(new TestPostWithCustomFilename());
+
+    expect($updatePost1->uploads()->count())->toBe(1);
+    expect($updatePost2->uploads()->count())->toBe(0);
+    expect($anotherPost->uploads()->count())->toBe(1);
+});
+
 it('can upload a file with storage options, set from static', function () {
     create_request_with_files();
     TestPost::uploadStorageOptions([
