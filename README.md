@@ -9,11 +9,9 @@
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Customizing the Rules and Messages](#customizing-the-rules-and-messages)
-- [Customizing the File Name and Upload Path](#customizing-the-file-name-and-upload-path)
-- [Uploading Files with Custom Options for the Storage](#uploading-files-with-custom-options-for-the-storage)
-- [Manually Processing File Uploads](#manually-processing-file-uploads)
-- [Temporarily Disable the File Upload Process](#temporarily-disabling-the-file-upload-process)
+- [Customization](#customization)
+- [Manually Processing of File Uploads](#manually-processing-of-file-uploads)
+- [Temporarily Disable the File Uploads](#temporarily-disable-the-file-uploads)
 - [Uploading Files on Model Update](#uploading-files-on-model-update)
 - [Uploading Files that are NOT from the Request](#uploading-files-that-are-not-from-the-request)
 - [Relation Methods](#relation-methods)
@@ -57,6 +55,9 @@ php artisan vendor:publish --tag="uploadable-config"
 ```
 
 This is the contents of the published config file:
+
+<details>
+    <summary>uploadable.php</summary>
 
 ```php
 return [
@@ -195,6 +196,9 @@ return [
     ],
 ];
 ```
+</details>
+
+<hr style="border-bottom: 3px solid #dadada" />
 
 ## Usage
 
@@ -214,7 +218,11 @@ class Post extends Model
 
 Now, everytime you create or update a post, it will automatically upload the files that are included in your request and it will save the details in `uploads` table.
 
-## Customizing the Rules and Messages
+<hr style="border-bottom: 3px solid #dadada" />
+
+## Customization
+
+### 1. Rules and Messages
 
 Files from the request should have the following request names:
 
@@ -257,7 +265,7 @@ public function uploadRuleMessages(): array
 }
 ```
 
-## Customizing the file name and upload path
+### 2. File Name and Upload Path
 
 You can customize the file name and path by defining the public methods `getUploadFilename` and `getUploadPath` in your model.
 
@@ -277,7 +285,7 @@ public function getUploadPath(UploadedFile $file): string
 > 
 > Make sure that the file name is completely unique to avoid overriding existing files.
 
-## Uploading Files with Custom Options for the Storage
+### 3. Storage Options
 
 When you're uploading your files on cloud storage, oftentimes you want to provide options like visibility, cache control, and other metadata. To do so, you can define the `getUploadStorageOptions` in your uploadable model.
 
@@ -291,7 +299,9 @@ public function getUploadStorageOptions(): array
 }
 ```
 
-## Manually processing file uploads
+<hr style="border-bottom: 3px solid #dadada" />
+
+## Manually Processing of File Uploads
 
 File upload happens when the uploadable model's `created` or `updated` event was fired.
 If you're creating or updating an uploadable model quietly, you can call the `createUploads` or `updateUploads` method to manually process the file uploads.
@@ -312,7 +322,7 @@ public function update(Request $request, Post $post)
 > 
 > Depending on your configuration, the `createUploads` will delete the uploadable model when the upload process fails, while `updateUploads` will update it to its original attributes.
 
-## Temporarily Disable the File Upload Process
+## Temporarily Disable the File Uploads
 
 You can temporarily disable the file uploads by calling the static method `disableUpload`.
 
@@ -371,7 +381,40 @@ public function update(Request $request, User $user)
 }
 ```
 
-Also, there is `NadLambino\Uploadable\Actions\Upload::enableFor()` method to let you enable the upload process for the given model. This will just remove the given model class or instance from the list of disabled models. Both of these methods will also work on queued uploads.
+- Lastly, specifically instruct the `NadLambino\Uploadable\Actions\Upload` to process the upload only for the specific given model by calling the `onlyFor` method. This method works the same way as `disableFor` but ensure that only the given model classes or instances will be process.
+
+```php
+use NadLambino\Uploadable\Actions\Upload;
+
+public function store()
+{
+    Upload::onlyFor(User::class);
+
+    // The files from the request will be uploaded and attached to this created user
+    User::create(...);
+
+    // The files from the request won't be uploaded and attached to this created post
+    Post::create(...);
+}
+
+public function update(User $user)
+{
+    Upload::onlyFor($user);
+
+    // This user will be updated and the files from the request will be uploaded and attached to it
+    $user->update(...);
+
+    $user2 = User::find(...);
+
+    // This user will be updated but the files from the request won't be uploaded and attached to it
+    $user2->update(...)
+}
+```
+
+Also, there is `NadLambino\Uploadable\Actions\Upload::enableFor()` method if you need to delist a model from the disabled list. It is different from `onlyFor` in a way that `onlyFor` method ensures that the files were only be uploaded to the given models, while `enableFor` just simply removes the given models from the disabled list.
+
+All of these methods could also work even when you are uploading on a queue.
+<hr style="border-bottom: 3px solid #dadada" />
 
 ## Uploading files on model update
 
@@ -397,6 +440,8 @@ public function update(Request $request, Post $post)
 > 
 > The process of deleting the previous uploads will only happen when new files were successfully
 > uploaded.
+
+<hr style="border-bottom: 3px solid #dadada" />
 
 ## Uploading files that are NOT from the request
 
@@ -436,6 +481,8 @@ $post->save();
 > 
 > Make sure that you've already validated the files that you're passing here as it does not run any validation like it does when uploading from request.
 
+<hr style="border-bottom: 3px solid #dadada" />
+
 ## Relation methods
 
 There are already pre-defined relation method for specific upload type.
@@ -469,6 +516,8 @@ public function documents(): MorphMany { }
 > [!IMPORTANT]
 > 
 > MorphOne relation method sets a limit of one in the query.
+
+<hr style="border-bottom: 3px solid #dadada" />
 
 ## Lifecycle and Events
 
@@ -510,6 +559,8 @@ $post->save();
 > application instance so you don't have access to the current application state like the request object.
 > Also, make sure that the closure and its dependencies you passed to the `beforeSavingUploadUsing` method are serializable.
 
+<hr style="border-bottom: 3px solid #dadada" />
+
 ## Queueing
 
 You can queue the file upload process by defining the queue name in the config.
@@ -526,28 +577,40 @@ Post::uploadOnQueue('default');
 $post->save();
 ```
 
+<hr style="border-bottom: 3px solid #dadada" />
+
 ## Testing
 
 ```bash
 composer test
 ```
 
+<hr style="border-bottom: 3px solid #dadada" />
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+
+<hr style="border-bottom: 3px solid #dadada" />
 
 ## Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
+<hr style="border-bottom: 3px solid #dadada" />
+
 ## Security Vulnerabilities
 
 Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+
+<hr style="border-bottom: 3px solid #dadada" />
 
 ## Credits
 
 - [Ronald Lambino](https://github.com/nadlambino)
 - [All Contributors](../../contributors)
+
+<hr style="border-bottom: 3px solid #dadada" />
 
 ## License
 
