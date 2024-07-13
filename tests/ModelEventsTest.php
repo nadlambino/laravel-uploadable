@@ -197,6 +197,148 @@ it('should upload the file only for the given model instance and class', functio
     expect($anotherPost->uploads()->count())->toBe(1);
 });
 
+it('should remove the model class from the disabled list when onlyFor method is used', function () {
+    create_request_with_files();
+    ActionsUpload::disableFor(TestPostWithCustomFilename::class);
+    ActionsUpload::onlyFor(TestPostWithCustomFilename::class);
+    $post = create_post(new TestPostWithCustomFilename());
+    $anotherPost = create_post(new TestPost());
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(0);
+    expect(access_static_private_property(ActionsUpload::class, 'disabledModels'))->toBeEmpty();
+});
+
+it('should remove the model instance from the disabled list when onlyFor method is used', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post = create_post(new TestPost(), silently: true);
+    ActionsUpload::disableFor($post);
+    ActionsUpload::onlyFor($post);
+    $updatePost = update_post($post);
+    $anotherPost = create_post(new TestPost());
+
+    expect($updatePost->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(0);
+    expect(access_static_private_property(ActionsUpload::class, 'disabledModels'))->toBeEmpty();
+});
+
+it('should remove the model classes from the disabled list when onlyFor method is used', function () {
+    create_request_with_files();
+    ActionsUpload::disableFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    ActionsUpload::onlyFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $post = create_post(new TestPostWithCustomFilename());
+    $anotherPost = create_post(new TestPostWithCustomPath());
+    $anotherPost2 = create_post(new TestPost());
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(1);
+    expect($anotherPost2->uploads()->count())->toBe(0);
+    expect(access_static_private_property(ActionsUpload::class, 'disabledModels'))->toBeEmpty();
+});
+
+it('should remove the model instances from the disabled list when onlyFor method is used', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post1 = create_post(new TestPost(), ['title' => 'Post 1'], silently: true);
+    $post2 = create_post(new TestPost(), ['title' => 'Post 2'], silently: true);
+    ActionsUpload::disableFor([$post1, $post2]);
+    ActionsUpload::onlyFor([$post1, $post2]);
+    $updatePost1 = update_post($post1);
+    $updatePost2 = update_post($post2);
+    $post3 = create_post(new TestPost());
+
+    expect($updatePost1->uploads()->count())->toBe(1);
+    expect($updatePost2->uploads()->count())->toBe(1);
+    expect($post3->uploads()->count())->toBe(0);
+    expect(access_static_private_property(ActionsUpload::class, 'disabledModels'))->toBeEmpty();
+});
+
+it('should remove both model class and instance from the disabled list when onlyFor method is used', function () {
+    create_request_with_files();
+    ActionsUpload::disableFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    ActionsUpload::onlyFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $post = create_post(new TestPostWithCustomFilename());
+    $anotherPost = create_post(new TestPostWithCustomPath());
+    $anotherPost2 = create_post(new TestPost());
+
+    expect($post->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->count())->toBe(1);
+    expect($anotherPost2->uploads()->count())->toBe(0);
+    expect(access_static_private_property(ActionsUpload::class, 'disabledModels'))->toBeEmpty();
+});
+
+it('should remove the model class from the enabled models when disableFor method is used', function () {
+    create_request_with_files();
+    ActionsUpload::onlyFor(TestPostWithCustomFilename::class);
+    ActionsUpload::disableFor(TestPostWithCustomFilename::class);
+    $post = create_post(new TestPostWithCustomFilename());
+    $anotherPost = create_post(new TestPost());
+
+    expect($post->uploads()->count())->toBe(0);
+    expect($anotherPost->uploads()->count())->toBe(1);
+    expect(access_static_private_property(ActionsUpload::class, 'onlyModels'))->toBeEmpty();
+});
+
+it('should remove the model instance from the enabled models when disableFor method is used', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post = create_post(new TestPost(), silently: true);
+    ActionsUpload::onlyFor($post);
+    ActionsUpload::disableFor($post);
+    $updatePost = update_post($post);
+    $anotherPost = create_post(new TestPost());
+
+    expect($updatePost->uploads()->count())->toBe(0);
+    expect($anotherPost->uploads()->count())->toBe(1);
+    expect(access_static_private_property(ActionsUpload::class, 'onlyModels'))->toBeEmpty();
+});
+
+it('should remove the model classes from the enabled models when disableFor method is used', function () {
+    create_request_with_files();
+    ActionsUpload::onlyFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    ActionsUpload::disableFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $post = create_post(new TestPostWithCustomFilename());
+    $anotherPost = create_post(new TestPostWithCustomPath());
+    $anotherPost2 = create_post(new TestPost());
+
+    expect($post->uploads()->count())->toBe(0);
+    expect($anotherPost->uploads()->count())->toBe(0);
+    expect($anotherPost2->uploads()->count())->toBe(1);
+    expect(access_static_private_property(ActionsUpload::class, 'onlyModels'))->toBeEmpty();
+});
+
+it('should remove the model instances from the enabled models when disableFor method is used', function () {
+    create_request_with_files();
+    // Create a post silently so it won't have the uploads initially
+    $post1 = create_post(new TestPost(), ['title' => 'Post 1'], silently: true);
+    $post2 = create_post(new TestPost(), ['title' => 'Post 2'], silently: true);
+    ActionsUpload::onlyFor([$post1, $post2]);
+    ActionsUpload::disableFor([$post1, $post2]);
+    $updatePost1 = update_post($post1);
+    $updatePost2 = update_post($post2);
+    $post3 = create_post(new TestPost());
+
+    expect($updatePost1->uploads()->count())->toBe(0);
+    expect($updatePost2->uploads()->count())->toBe(0);
+    expect($post3->uploads()->count())->toBe(1);
+    expect(access_static_private_property(ActionsUpload::class, 'onlyModels'))->toBeEmpty();
+});
+
+it('should remove both model class and instance from the enabled models when disableFor method is used', function () {
+    create_request_with_files();
+    ActionsUpload::onlyFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    ActionsUpload::disableFor([TestPostWithCustomFilename::class, TestPostWithCustomPath::class]);
+    $post = create_post(new TestPostWithCustomFilename());
+    $anotherPost = create_post(new TestPostWithCustomPath());
+    $anotherPost2 = create_post(new TestPost());
+
+    expect($post->uploads()->count())->toBe(0);
+    expect($anotherPost->uploads()->count())->toBe(0);
+    expect($anotherPost2->uploads()->count())->toBe(1);
+    expect(access_static_private_property(ActionsUpload::class, 'onlyModels'))->toBeEmpty();
+});
+
 it('can upload a file with storage options, set from static', function () {
     create_request_with_files();
     TestPost::uploadStorageOptions([

@@ -16,7 +16,7 @@ use NadLambino\Uploadable\Events\FailedUpload;
 use NadLambino\Uploadable\Events\StartUpload;
 use NadLambino\Uploadable\Models\Upload as ModelsUpload;
 
-class Upload
+final class Upload
 {
     /**
      * The uploadable model.
@@ -89,6 +89,8 @@ class Upload
      */
     public static function disableFor(string|array|Model $models): void
     {
+        self::removeFrom($models, self::$onlyModels);
+
         self::$disabledModels = array_unique(is_array($models) ? $models : [$models]);
     }
 
@@ -97,11 +99,7 @@ class Upload
      */
     public static function enableFor(string|array|Model $models): void
     {
-        if ($models instanceof Model) {
-            self::$disabledModels = array_filter(self::$disabledModels, fn ($model) => ! $model instanceof $models || $model->getKey() !== $models->getKey());
-        } else {
-            self::$disabledModels = array_diff(self::$disabledModels, is_array($models) ? $models : [$models]);
-        }
+        self::removeFrom($models, self::$disabledModels);
     }
 
     /**
@@ -109,7 +107,21 @@ class Upload
      */
     public static function onlyFor(string|array|Model $models): void
     {
+        self::removeFrom($models, self::$disabledModels);
+
         self::$onlyModels = is_array($models) ? $models : [$models];
+    }
+
+    /**
+     * Remove the given models from the list.
+     */
+    private static function removeFrom(string|array|Model $models, array &$list): void
+    {
+        if ($models instanceof Model) {
+            $list = array_filter($list, fn ($model) => ! $model instanceof $models || $model->getKey() !== $models->getKey());
+        } else {
+            $list = array_diff($list, is_array($models) ? $models : [$models]);
+        }
     }
 
     /**
@@ -118,7 +130,7 @@ class Upload
     private function setDisabledModelsWhenOnQueue(): void
     {
         if (! is_null($this->options->uploadOnQueue)) {
-            static::$disabledModels = $this->options->disabledModels;
+            self::$disabledModels = $this->options->disabledModels;
         }
     }
 
@@ -128,7 +140,7 @@ class Upload
     private function setEnabledModelsWhenOnQueue(): void
     {
         if (! is_null($this->options->uploadOnQueue)) {
-            static::$onlyModels = $this->options->onlyModels;
+            self::$onlyModels = $this->options->onlyModels;
         }
     }
 
@@ -142,10 +154,10 @@ class Upload
             $this->options->disableUpload === true ||
 
             // Should not proceed if the uploadable model class is included from the list of disabled models.
-            in_array(get_class($this->uploadable), static::$disabledModels) ||
+            in_array(get_class($this->uploadable), self::$disabledModels) ||
 
             // Should not proceed if the uploadable model instance is included from the list of disabled models.
-            collect(static::$disabledModels)->first(function ($model) {
+            collect(self::$disabledModels)->first(function ($model) {
                 return $model instanceof $this->uploadable && $model->getKey() === $this->uploadable->getKey();
             }) !== null ||
 
@@ -160,13 +172,13 @@ class Upload
     {
         return
             // The given uploadable model is considered as enabled when the $onlyModels is empty.
-            empty(static::$onlyModels) ||
+            empty(self::$onlyModels) ||
 
             // The given uploadable model is considered as enabled when the uploadable model class is included from the list of enabled models.
-            in_array(get_class($this->uploadable), static::$onlyModels) ||
+            in_array(get_class($this->uploadable), self::$onlyModels) ||
 
             // The given uploadable model is considered as enabled when the uploadable model instance is included from the list of enabled models.
-            collect(static::$onlyModels)->first(function ($model) {
+            collect(self::$onlyModels)->first(function ($model) {
                 return $model instanceof $this->uploadable && $model->getKey() === $this->uploadable->getKey();
             }) !== null;
     }
