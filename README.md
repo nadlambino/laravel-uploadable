@@ -418,6 +418,11 @@ public function update(User $user)
 Also, there is `NadLambino\Uploadable\Actions\Upload::enableFor()` method if you need to delist a model from the disabled list. It is different from `onlyFor` in a way that `onlyFor` method ensures that the files were only be uploaded to the given models while `enableFor` just simply removes the given models from the disabled list.
 
 All of these methods could also work even when you are uploading on a queue.
+
+> [!NOTE]
+>
+> When calling the `disableFor` method, it will remove the given model from the list of `onlyFor` models. Same goes when calling the `onlyFor` method, it will remove the given model from the list of disabled models.
+
 <hr style="border-bottom: 3px solid #dadada" />
 
 ## Uploading files on model update
