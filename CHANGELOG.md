@@ -2,6 +2,11 @@
 
 All notable changes to `uploadable` will be documented in this file.
 
+## [v1.1.2] - 2024-07-13
+
+### Changed
+- [Remove models from the list of enabled or disabled models when calling the `disableFor` or `onlyFor` method](https://github.com/nadlambino/laravel-uploadable/commit/f4f7e4d56f01622722882b79bfaefe828179e2bf)
+
 ## [v1.1.1] - 2024-07-11
 
 ### Added
