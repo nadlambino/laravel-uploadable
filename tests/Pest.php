@@ -111,3 +111,12 @@ function invoke_private_method(object $object, string $method, ...$args): mixed
 
     return $method->invoke($object, ...$args);
 }
+
+function access_static_private_property(string $class, string $property): mixed
+{
+    $reflection = new ReflectionClass($class);
+    $property = $reflection->getProperty($property);
+    $property->setAccessible(true);
+
+    return $property->getValue();
+}
