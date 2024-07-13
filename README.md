@@ -287,7 +287,7 @@ public function getUploadPath(UploadedFile $file): string
 
 ### 3. Storage Options
 
-When you're uploading your files on cloud storage, oftentimes you want to provide options like visibility, cache control, and other metadata. To do so, you can define the `getUploadStorageOptions` in your uploadable model.
+When you're uploading your files on cloud storage, oftentimes you want to provide options like visibility, cache control, and other metadata. To do so, you can define the `getUploadStorageOptions` in your model.
 
 ```php
 public function getUploadStorageOptions(): array
@@ -303,8 +303,8 @@ public function getUploadStorageOptions(): array
 
 ## Manually Processing of File Uploads
 
-File upload happens when the uploadable model's `created` or `updated` event was fired.
-If you're creating or updating an uploadable model quietly, you can call the `createUploads` or `updateUploads` method to manually process the file uploads.
+File upload happens when the model's `created` or `updated` event was fired.
+If you're creating or updating a model quietly, you can call the `createUploads` or `updateUploads` method to manually process the file uploads.
 
 ```php
 public function update(Request $request, Post $post)
@@ -320,7 +320,7 @@ public function update(Request $request, Post $post)
 ```
 > [!IMPORTANT]
 > 
-> Depending on your configuration, the `createUploads` will delete the uploadable model when the upload process fails, while `updateUploads` will update it to its original attributes.
+> Depending on your configuration, the `createUploads` will delete the model when the upload process fails, while `updateUploads` will update it to its original attributes.
 
 ## Temporarily Disable the File Uploads
 
@@ -336,31 +336,33 @@ public function update(Request $request, Post $post)
     
     // Do more stuff here...
     
-    // Manually process the uploads after everything you want to do.
+    // Manually process the uploads after everything you want to do
     $post->updateUploads();
 }
 ```
 
 ### Caveat
 
-When you are trying to create or update multiple uploadable models, the default behavior of this package is that all of the files from the request will be uploaded and will be attached to all of these models. This is because these models are firing the `created` or `updated` event which triggers the upload process. There are multiple ways to prevent this from happening such as:
+When you are trying to create or update multiple models, the default behavior is that all of the files from the request will be uploaded and will be attached to all of these models. This is because these models are firing the `created` or `updated` event which triggers the upload process. 
 
-- Silently create or update the models that you don't want to have the files being uploaded and attached to them. By doing so, the `created` or `updated` event won't be fired which will not trigger the upload process.
+There are multiple ways to prevent this from happening such as:
+
+- Silently create or update the models. By doing so, the `created` or `updated` event won't be fired which will not trigger the upload process. This may not be what you want if you have a model observer for these two events.
 - Disable the upload process on the specific model by calling the `disableUpload()` method.
-- Disable the upload process from the `NadLambino\Uploadable\Actions\Upload` action itself. The `NadLambino\Uploadable\Actions\Upload::disableFor()` method can accept a string class name of a model, a model instance, or an array of each or both. See below example:
+- Disable the upload process from the `NadLambino\Uploadable\Actions\Upload` action itself. The `Upload::disableFor()` method can accept a model class name, a model instance, or an array of each or both. See below example:
 
 ```php
 use NadLambino\Uploadable\Actions\Upload;
 
 public function store(Request $request)
 {
-    // Disable the uploads for all of the instances of Post model during this request lifecycle
+    // Disable the uploads for all of the instances of Post model
     Upload::disableFor(Post::class);
 
-    // User will be created with the files being uploaded and attached to it
-    User::create($request->validated());
+    // Files will be uploaded for User model
+    User::create(...);
 
-    // Post will be created without the files being uploaded and attached to it
+    // Files won't be uploaded for Post model
     Post::create(...);
 }
 
@@ -368,57 +370,64 @@ public function store(Request $request)
 
 public function update(Request $request, User $user)
 {
-     // Disable the uploads only for this specific user during this request lifecycle
+     // Disable the uploads only for this specific $user
     Upload::disableFor($user);
 
-    // $user will be updated without the files being uploaded and attached to it
+    // Files won't be uploaded for this specific $user
     $user->update($request->validated());
     
     $anotherUser = User::find(...);
 
-    // $anotherUser will be updated with the files being uploaded and attached to it
+    // Files will be uploaded for this $anotherUser
     $anotherUser->update(...);
 }
 ```
 
-- Lastly, specifically instruct the `NadLambino\Uploadable\Actions\Upload` to process the upload only for the specific given model by calling the `onlyFor` method. This method works the same way as `disableFor` but ensure that only the given model classes or instances will be process.
+- Lastly, specifically instruct the `NadLambino\Uploadable\Actions\Upload` to process the upload only for the specific given model by calling the `Upload::onlyFor` method. This method has the same parameter signature as `Upload::disableFor` and ensure that only these given model classes or instances will be process.
 
 ```php
 use NadLambino\Uploadable\Actions\Upload;
 
 public function store()
 {
+    // Process the uploads only for all of the instances of User model
     Upload::onlyFor(User::class);
 
-    // The files from the request will be uploaded and attached to this created user
+    // Files will be uploaded for this User model
     User::create(...);
 
-    // The files from the request won't be uploaded and attached to this created post
+    // Files won't be uploaded for this Post model
     Post::create(...);
 }
 
 public function update(User $user)
 {
+    // Process the uploads only for this specific $user
     Upload::onlyFor($user);
 
-    // This user will be updated and the files from the request will be uploaded and attached to it
+    // Files will be uploaded for this specific $user
     $user->update(...);
 
-    $user2 = User::find(...);
+    $anotherUser = User::find(...);
 
-    // This user will be updated but the files from the request won't be uploaded and attached to it
-    $user2->update(...)
+    // Files won't be uploaded for this $anotherUser
+    $anotherUser->update(...)
 }
 ```
 
-Also, there is `NadLambino\Uploadable\Actions\Upload::enableFor()` method if you need to delist a model from the disabled list. It is different from `onlyFor` in a way that `onlyFor` method ensures that the files were only be uploaded to the given models, while `enableFor` just simply removes the given models from the disabled list.
+Also, there is `NadLambino\Uploadable\Actions\Upload::enableFor()` method if you need to delist a model from the disabled list. It is different from `onlyFor` in a way that `onlyFor` method ensures that the files were only be uploaded to the given models while `enableFor` just simply removes the given models from the disabled list.
 
 All of these methods could also work even when you are uploading on a queue.
+
+> [!NOTE]
+>
+> When calling the `disableFor` method, it will remove the given model from the list of `onlyFor` models. Same goes when calling the `onlyFor` method, it will remove the given model from the list of disabled models.
+
 <hr style="border-bottom: 3px solid #dadada" />
 
 ## Uploading files on model update
 
-By default, when you update an uploadable model, the files from the request will add up to the existing uploaded files. If you want to replace the existing files with the new ones, you can configure it in the `uploadable.php` config file.
+By default, when you update a model, the files from the request will add up to the existing uploaded files. If you want to replace the existing files with the new ones, you can configure it in the `uploadable.php` config file.
 
 ```php
 'replace_previous_uploads' => true,
@@ -445,20 +454,23 @@ public function update(Request $request, Post $post)
 
 ## Uploading files that are NOT from the request
 
-If you wish to upload a file that is not from the request, you can do so by calling the `uploadFrom` method. This method can accept an instance or an array of `\Illuminate\Http\UploadedFile` or a string path of a file that is uploaded on your `temporary_disk`.
+If you wish to upload a file that is NOT directly from the request, you can do so by calling the `uploadFrom` method. This method can accept an instance or an array of `Illuminate\Http\UploadedFile` or a string path of a file that is uploaded on your `temporary_disk`.
 
 ```php
 // DO
-$post->uploadFrom(UploadedFile::fake()->image('avatar1.jpg'));
+$post->uploadFrom($request->file('image'));
+
+// OR
+$post->uploadFrom(new UploadedFile(...));
 
 // OR
 $post->uploadFrom([
-    UploadedFile::fake()->image('avatar1.jpg'),
-    UploadedFile::fake()->image('avatar2.jpg'),
+    $request->file('image'),
+    $request->file('avatar')
 ]);
 
 // OR
-$fullpath = UploadedFile::fake()->image('avatar.jpg')->store('tmp', config('uploadable.temporary_disk', 'local'));
+$fullpath = ... // The path of the file that is uploaded in your `temporary_disk`. This could be something like an image that was modified by `ImageIntervention` then temporarily stored before uploading
 
 $post->uploadFrom($fullpath);
 
@@ -470,7 +482,7 @@ $post->uploadFrom([
 
 // OR even a mixed of both
 $post->uploadFrom([
-    UploadedFile::fake()->image('avatar1.jpg'),
+    $request->file('image'),
     $fullpath,
 ]);
 
@@ -479,7 +491,7 @@ $post->save();
 
 > [!IMPORTANT]
 > 
-> Make sure that you've already validated the files that you're passing here as it does not run any validation like it does when uploading from request.
+> Make sure that you've already validated the files that you're passing here as it does not run any validation like it does when uploading directly from the request.
 
 <hr style="border-bottom: 3px solid #dadada" />
 
@@ -542,7 +554,7 @@ public function beforeSavingUpload(Upload $upload, Model $model) : void
 
 Alternatively, you can statically call the `beforeSavingUploadUsing` method and pass a closure.
 The closure will receive the same parameters as the `beforeSavingUpload` method.
-Just make sure that you call this method before creating or updating the uploadable model.
+Just make sure that you call this method before creating or updating the model.
 Also, `beforeSavingUploadUsing` has the higher precedence than the `beforeSavingUpload` allowing you to override it when needed.
 
 ```php
