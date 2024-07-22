@@ -7,6 +7,14 @@ use Illuminate\Http\UploadedFile;
 interface StorageContract
 {
     /**
+     * Change the disk to use.
+     *
+     * @param  string  $disk  The disk to use.
+     * @return static The storage instance.
+     */
+    public function disk(string $disk): static;
+
+    /**
      * Upload a file.
      *
      * @param  UploadedFile  $file  The file to upload.

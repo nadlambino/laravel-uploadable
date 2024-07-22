@@ -14,6 +14,7 @@ use NadLambino\Uploadable\Contracts\StorageContract;
  * @property string $extension
  * @property int|float|string $size
  * @property string $type
+ * @property ?string $disk
  */
 class Upload extends Model
 {

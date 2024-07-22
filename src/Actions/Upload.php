@@ -63,6 +63,9 @@ final class Upload
     {
         $this->uploadable = $uploadable;
         $this->options = $options ?? app(UploadOptions::class);
+        $this->storage = $this->options->disk ?
+            $this->storage->disk($this->options->disk) :
+            $this->storage;
 
         $this->setDisabledModelsWhenOnQueue();
         $this->setEnabledModelsWhenOnQueue();
@@ -227,6 +230,7 @@ final class Upload
             $upload->extension = strtolower($uploadedFile->getClientOriginalExtension());
             $upload->size = $uploadedFile->getSize();
             $upload->type = $uploadedFile->getMimeType();
+            $upload->disk = $this->options->disk ?? config('filesystems.default');
 
             $this->beforeSavingUpload($upload);
 

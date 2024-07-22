@@ -6,6 +6,7 @@ use DateTime;
 use DateTimeInterface;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use NadLambino\Uploadable\Contracts\StorageContract;
@@ -13,6 +14,16 @@ use NadLambino\Uploadable\Contracts\StorageContract;
 class StorageService implements StorageContract
 {
     public function __construct(protected FilesystemAdapter $filesystem) {}
+
+    /**
+     * @inheritDoc
+     */
+    public function disk(string $disk): static
+    {
+        $this->filesystem = Storage::disk($disk);
+
+        return $this;
+    }
 
     /**
      * {@inheritDoc}

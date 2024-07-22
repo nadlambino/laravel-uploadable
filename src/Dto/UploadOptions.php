@@ -32,6 +32,7 @@ class UploadOptions
         public readonly bool $disableUpload = false,
         public readonly array $originalAttributes = [],
         public readonly ?array $uploadStorageOptions = null,
+        public readonly ?string $disk = null,
         private ?bool $replacePreviousUploads = null,
         private ?string $uploadOnQueue = null
     ) {

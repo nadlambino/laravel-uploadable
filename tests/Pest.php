@@ -23,12 +23,15 @@ function reset_config(): void
     config()->set('uploadable.temporary_disk', 'local');
     config()->set('uploadable.temporary_url.expiration', '1 hour');
     config()->set('app.timezone', 'UTC');
+    config()->set('filesystems.default', 'local');
     TestPost::$beforeSavingUploadCallback = null;
     TestPost::$disableUpload = false;
     TestPost::$replacePreviousUploads = null;
     TestPost::$uploadOnQueue = null;
     TestPost::$validateUploads = null;
+    TestPost::$uploadDisk = null;
     TestPostWithCustomStorageOptions::$uploadStorageOptions = null;
+    TestPostWithCustomStorageOptions::$uploadDisk = null;
     Upload::disableFor([]);
     Upload::onlyFor([]);
 }

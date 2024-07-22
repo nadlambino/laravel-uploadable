@@ -667,3 +667,41 @@ it('should restore the uploads when the uploadable model was restored', function
     expect(Upload::query()->get())->not->toBeEmpty();
     expect(Storage::exists($files->path))->toBeTrue();
 });
+
+it('can upload a file to a different disk', function () {
+    config()->set('filesystems.default', 'local');
+    create_request_with_files();
+    TestPost::uploadDisk('public');
+    $post = create_post(new TestPost());
+
+    expect(Storage::disk('public')->exists($post->uploads()->first()->path))->toBeTrue();
+    expect($post->uploads()->count())->toBe(1);
+    expect($post->uploads()->first()->disk)->toBe('public');
+});
+
+it('should still upload the file from the default disk when a new disk is set from different model', function() {
+    config()->set('filesystems.default', 'local');
+    create_request_with_files();
+    TestPostWithCustomStorageOptions::uploadDisk('public');
+    $post = create_post(new TestPostWithCustomStorageOptions());
+    $anotherPost = create_post(new TestPost());
+
+    expect(Storage::disk('public')->exists($post->uploads()->first()->path))->toBeTrue();
+    expect($post->uploads()->count())->toBe(1);
+    expect($post->uploads()->first()->disk)->toBe('public');
+
+    expect(Storage::disk('local')->exists($anotherPost->uploads()->first()->path))->toBeTrue();
+    expect($anotherPost->uploads()->count())->toBe(1);
+    expect($anotherPost->uploads()->first()->disk)->toBe('local');
+});
+
+it('can set the value of collection column', function () {
+    create_request_with_files();
+    $collection = fake()->word();
+    TestPost::beforeSavingUploadUsing(function (Upload $upload) use ($collection) {
+        $upload->collection = $collection;
+    });
+    $post = create_post(new TestPost());
+
+    expect($post->uploads()->first()->collection)->toBe($collection);
+});

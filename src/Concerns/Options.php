@@ -44,6 +44,11 @@ trait Options
     public static ?array $uploadStorageOptions = null;
 
     /**
+     * The disk to upload the file.
+     */
+    public static ?string $uploadDisk = null;
+
+    /**
      * Set the callback that will be called before saving the upload.
      * The callback will receive the upload model and the current model as arguments.
      * This callback has the higher priority than the non-static `beforeSavingUpload` method.
@@ -103,6 +108,14 @@ trait Options
     }
 
     /**
+     * Set the disk to upload the file.
+     */
+    public static function uploadDisk(string $disk): void
+    {
+        static::$uploadDisk = $disk;
+    }
+
+    /**
      * The options for the upload process.
      */
     public function getUploadOptions(): UploadOptions
@@ -110,6 +123,7 @@ trait Options
         return new UploadOptions(
             beforeSavingUploadUsing: static::$beforeSavingUploadCallback,
             disableUpload: static::$disableUpload,
+            disk: static::$uploadDisk,
             originalAttributes: $this->getOriginalOfAffectedAttributes(),
             uploadStorageOptions: $this->getStorageOptions(),
             replacePreviousUploads: static::$replacePreviousUploads,
