@@ -2,6 +2,7 @@
 
 namespace NadLambino\Uploadable\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,6 +15,7 @@ use NadLambino\Uploadable\Contracts\StorageContract;
  * @property string $extension
  * @property int|float|string $size
  * @property string $type
+ * @property ?string $disk
  */
 class Upload extends Model
 {
@@ -38,5 +40,10 @@ class Upload extends Model
     public function uploadable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function scopeFromCollection(Builder $query, string $collection): void
+    {
+        $query->where('collection', $collection);
     }
 }

@@ -13,6 +13,7 @@ uses(TestCase::class)->in(__DIR__);
 function reset_config(): void
 {
     config()->set('uploadable.validate', true);
+    config()->set('uploadable.uploads_model', \NadLambino\Uploadable\Models\Upload::class);
     config()->set('uploadable.delete_model_on_upload_fail', true);
     config()->set('uploadable.rollback_model_on_upload_fail', true);
     config()->set('uploadable.force_delete_uploads', false);
@@ -23,12 +24,16 @@ function reset_config(): void
     config()->set('uploadable.temporary_disk', 'local');
     config()->set('uploadable.temporary_url.expiration', '1 hour');
     config()->set('app.timezone', 'UTC');
+    config()->set('filesystems.default', 'local');
     TestPost::$beforeSavingUploadCallback = null;
     TestPost::$disableUpload = false;
     TestPost::$replacePreviousUploads = null;
     TestPost::$uploadOnQueue = null;
     TestPost::$validateUploads = null;
+    TestPost::$uploadDisk = null;
+    TestPost::$uploadAttributes = [];
     TestPostWithCustomStorageOptions::$uploadStorageOptions = null;
+    TestPostWithCustomStorageOptions::$uploadDisk = null;
     Upload::disableFor([]);
     Upload::onlyFor([]);
 }

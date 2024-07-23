@@ -51,6 +51,8 @@ class TestCase extends Orchestra
         $migration = include __DIR__.'/../database/migrations/create_uploads_table.php.stub';
         $migration->up();
 
+        (include __DIR__.'/../database/migrations/add_new_columns_to_uploads_table.php.stub')->up();
+
         $this->setUpAdditionalMigration();
     }
 

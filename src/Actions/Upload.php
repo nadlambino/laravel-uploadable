@@ -63,6 +63,9 @@ final class Upload
     {
         $this->uploadable = $uploadable;
         $this->options = $options ?? app(UploadOptions::class);
+        $this->storage = $this->options->disk ?
+            $this->storage->disk($this->options->disk) :
+            $this->storage;
 
         $this->setDisabledModelsWhenOnQueue();
         $this->setEnabledModelsWhenOnQueue();
@@ -220,14 +223,17 @@ final class Upload
             $fullpath = $this->storage->upload($uploadedFile, $path, $filename, $storageOptions);
             $this->fullpaths[] = $fullpath;
 
-            $upload = new ModelsUpload();
+            /** @var ModelsUpload $upload */
+            $upload = new $this->options->uploadModelClass;
             $upload->path = $fullpath;
             $upload->name = $filename;
             $upload->original_name = $uploadedFile->getClientOriginalName();
             $upload->extension = strtolower($uploadedFile->getClientOriginalExtension());
             $upload->size = $uploadedFile->getSize();
             $upload->type = $uploadedFile->getMimeType();
+            $upload->disk = $this->options->disk ?? config('filesystems.default');
 
+            $this->assignUploadAttributes($upload);
             $this->beforeSavingUpload($upload);
 
             $upload->uploadable()->associate($this->uploadable);
@@ -255,6 +261,13 @@ final class Upload
         }
     }
 
+    private function assignUploadAttributes(Model $upload): void
+    {
+        collect($this->options->uploadAttributes)->each(function ($value, $key) use ($upload) {
+            $upload->$key = $value;
+        });
+    }
+
     /**
      * Get an instance of Illuminate\Http\UploadedFile from a full path.
      *
@@ -271,9 +284,9 @@ final class Upload
     /**
      * Callback before saving the upload.
      *
-     * @param  ModelsUpload  $upload  The upload model.
+     * @param  Model  $upload  The upload model.
      */
-    private function beforeSavingUpload(ModelsUpload $upload): void
+    private function beforeSavingUpload(Model $upload): void
     {
         $callback = $this->options->beforeSavingUploadUsing;
 
