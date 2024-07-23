@@ -49,6 +49,13 @@ trait Options
     public static ?string $uploadDisk = null;
 
     /**
+     * The attributes that will be stored to uploads table.
+     *
+     * @var array<string, mixed>
+     */
+    public static array $uploadAttributes = [];
+
+    /**
      * Set the callback that will be called before saving the upload.
      * The callback will receive the upload model and the current model as arguments.
      * This callback has the higher priority than the non-static `beforeSavingUpload` method.
@@ -115,6 +122,11 @@ trait Options
         static::$uploadDisk = $disk;
     }
 
+    public static function uploadToCollection(string $collection): void
+    {
+        static::$uploadAttributes['collection'] = $collection;
+    }
+
     /**
      * The options for the upload process.
      */
@@ -127,6 +139,7 @@ trait Options
             originalAttributes: $this->getOriginalOfAffectedAttributes(),
             uploadStorageOptions: $this->getStorageOptions(),
             replacePreviousUploads: static::$replacePreviousUploads,
+            uploadAttributes: static::$uploadAttributes,
             uploadOnQueue: static::$uploadOnQueue,
         );
     }

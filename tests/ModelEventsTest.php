@@ -705,3 +705,21 @@ it('can set the value of collection column', function () {
 
     expect($post->uploads()->first()->collection)->toBe($collection);
 });
+
+it('can upload a file to specific collection using the uploadToCollection method', function () {
+    create_request_with_files();
+    $collection = fake()->word();
+    TestPost::uploadToCollection($collection);
+    $post = create_post(new TestPost());
+
+    expect($post->uploads()->first()->collection)->toBe($collection);
+});
+
+it('can upload a file to specific collection then retrieve it using the scope fromCollection', function () {
+    create_request_with_files();
+    $collection = fake()->word();
+    TestPost::uploadToCollection($collection);
+    $post = create_post(new TestPost());
+
+    expect($post->uploads()->fromCollection($collection)->count())->toBe(1);
+});

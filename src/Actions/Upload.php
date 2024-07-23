@@ -232,6 +232,7 @@ final class Upload
             $upload->type = $uploadedFile->getMimeType();
             $upload->disk = $this->options->disk ?? config('filesystems.default');
 
+            $this->assignUploadAttributes($upload);
             $this->beforeSavingUpload($upload);
 
             $upload->uploadable()->associate($this->uploadable);
@@ -257,6 +258,13 @@ final class Upload
 
             throw $exception;
         }
+    }
+
+    private function assignUploadAttributes(ModelsUpload $upload): void
+    {
+        collect($this->options->uploadAttributes)->each(function ($value, $key) use ($upload) {
+            $upload->$key = $value;
+        });
     }
 
     /**

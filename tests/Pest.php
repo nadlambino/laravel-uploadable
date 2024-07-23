@@ -30,6 +30,7 @@ function reset_config(): void
     TestPost::$uploadOnQueue = null;
     TestPost::$validateUploads = null;
     TestPost::$uploadDisk = null;
+    TestPost::$uploadAttributes = [];
     TestPostWithCustomStorageOptions::$uploadStorageOptions = null;
     TestPostWithCustomStorageOptions::$uploadDisk = null;
     Upload::disableFor([]);
