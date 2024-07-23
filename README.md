@@ -75,6 +75,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Uploads Model
+    |--------------------------------------------------------------------------
+    |
+    | Specify the model to use for uploads.
+    |
+    */
+    'uploads_model' => \NadLambino\Uploadable\Models\Upload::class,
+
+    /*
+    |--------------------------------------------------------------------------
     | Delete Model on Upload Failure
     |--------------------------------------------------------------------------
     |
@@ -297,6 +307,47 @@ public function getUploadStorageOptions(): array
         'CacheControl' => 'max-age=315360000, no-transform, public'
     ];
 }
+```
+
+### 4. Upload Disk
+
+When you're uploading your files, sometimes you just upload it on your local disk. However for larger files, you may want to use `s3`. This can be with static method `uploadDisk`.
+
+```php
+// Let us say that on your config/filesystems.php, your default disk is set to `local`.
+// This method will create a user and will upload the file from the request, e.g., user avatar.
+public function store(Request $request)
+{
+    User::create(...);
+}
+
+// While this method store the message and will upload the file from the request to `s3`.
+public function store(Request $request)
+{
+    Message::uploadDisk('s3');
+    Message::create(...);
+}
+```
+
+### 5. Grouping of Uploads
+
+When uploading a files for your model, sometimes you can have multiple file uploads for different purposes. For example, a post could have a file upload for thumbnail, banners, and gallery. This can be achieve with `uploadToCollection` method.
+
+```php
+public function store(Request $request)
+{
+    Post::uploadToCollection('banner');
+
+    Post::create(...);
+}
+```
+
+Also, to retrieve file uploads of specific collection, you can use the scope query `fromCollection`.
+
+```php
+$post = Post::query()
+    ->with('image', fn ($query) => $query->fromCollection('banner'))
+    ->find(...);
 ```
 
 <hr style="border-bottom: 3px solid #dadada" />
