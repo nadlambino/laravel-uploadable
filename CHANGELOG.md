@@ -2,6 +2,14 @@
 
 All notable changes to `uploadable` will be documented in this file.
 
+## [v1.2.0] - 2024-07-13
+
+### Added
+- [Add the ability to upload the file to a different disk](https://github.com/nadlambino/laravel-uploadable/pull/16/commits/78b30262075763f4c576024d09fb1e3b9a0b072b)
+- [Add a new column `collection` to easily group file uploads](https://github.com/nadlambino/laravel-uploadable/pull/16/commits/78b30262075763f4c576024d09fb1e3b9a0b072b)
+- [Add a new static method `uploadToCollection` to specify which group the file uploads belongs to](https://github.com/nadlambino/laravel-uploadable/pull/16/commits/a590e743457e6d0db42807079712573e9135a291)
+- [Add a new scope query method `fromCollection` for `\NadLambino\Uploadable\Models\Upload::class` model to easily retrieve file uploads from specific group](https://github.com/nadlambino/laravel-uploadable/pull/16/commits/a590e743457e6d0db42807079712573e9135a291)
+
 ## [v1.1.2] - 2024-07-13
 
 ### Changed
