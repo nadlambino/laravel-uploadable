@@ -679,7 +679,7 @@ it('can upload a file to a different disk', function () {
     expect($post->uploads()->first()->disk)->toBe('public');
 });
 
-it('should still upload the file from the default disk when a new disk is set from different model', function() {
+it('should still upload the file from the default disk when a new disk is set from different model', function () {
     config()->set('filesystems.default', 'local');
     create_request_with_files();
     TestPostWithCustomStorageOptions::uploadDisk('public');

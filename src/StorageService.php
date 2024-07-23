@@ -16,7 +16,7 @@ class StorageService implements StorageContract
     public function __construct(protected FilesystemAdapter $filesystem) {}
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function disk(string $disk): static
     {
