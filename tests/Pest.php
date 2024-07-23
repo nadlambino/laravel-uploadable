@@ -13,6 +13,7 @@ uses(TestCase::class)->in(__DIR__);
 function reset_config(): void
 {
     config()->set('uploadable.validate', true);
+    config()->set('uploadable.uploads_model', \NadLambino\Uploadable\Models\Upload::class);
     config()->set('uploadable.delete_model_on_upload_fail', true);
     config()->set('uploadable.rollback_model_on_upload_fail', true);
     config()->set('uploadable.force_delete_uploads', false);

@@ -5,7 +5,6 @@ namespace NadLambino\Uploadable\Concerns;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\SerializableClosure\SerializableClosure;
 use NadLambino\Uploadable\Dto\UploadOptions;
-use NadLambino\Uploadable\Models\Upload;
 
 trait Options
 {
@@ -70,7 +69,7 @@ trait Options
      * The callback will receive the upload model and the current model as arguments.
      * This callback has the lower priority than the static `beforeSavingUploadUsing` method.
      */
-    public function beforeSavingUpload(Upload $upload, Model $model): void {}
+    public function beforeSavingUpload(Model $upload, Model $model): void {}
 
     /**
      * Whether or not to replace previous uploads.

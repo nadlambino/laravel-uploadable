@@ -15,7 +15,7 @@ trait Relations
      */
     public function upload(): MorphOne
     {
-        return $this->morphOne(Upload::class, 'uploadable')
+        return $this->morphOne(config('uploadable.uploads_model', Upload::class), 'uploadable')
             ->limit(1);
     }
 
@@ -26,7 +26,7 @@ trait Relations
      */
     public function uploads(): MorphMany
     {
-        return $this->morphMany(Upload::class, 'uploadable');
+        return $this->morphMany(config('uploadable.uploads_model', Upload::class), 'uploadable');
     }
 
     /**
@@ -36,7 +36,7 @@ trait Relations
      */
     public function image(): MorphOne
     {
-        return $this->morphOne(Upload::class, 'uploadable')
+        return $this->morphOne(config('uploadable.uploads_model', Upload::class), 'uploadable')
             ->where(function ($query) {
                 $query->whereIn('extension', $mimes = $this->getImageMimes())
                     ->orWhereIn('type', $mimes);
@@ -51,7 +51,7 @@ trait Relations
      */
     public function images(): MorphMany
     {
-        return $this->morphMany(Upload::class, 'uploadable')
+        return $this->morphMany(config('uploadable.uploads_model', Upload::class), 'uploadable')
             ->where(function ($query) {
                 $query->whereIn('extension', $mimes = $this->getImageMimes())
                     ->orWhereIn('type', $mimes);
@@ -65,7 +65,7 @@ trait Relations
      */
     public function video(): MorphOne
     {
-        return $this->morphOne(Upload::class, 'uploadable')
+        return $this->morphOne(config('uploadable.uploads_model', Upload::class), 'uploadable')
             ->where(function ($query) {
                 $query->whereIn('extension', $mimes = $this->getVideoMimes())
                     ->orWhereIn('type', $mimes);
@@ -80,7 +80,7 @@ trait Relations
      */
     public function videos(): MorphMany
     {
-        return $this->morphMany(Upload::class, 'uploadable')
+        return $this->morphMany(config('uploadable.uploads_model', Upload::class), 'uploadable')
             ->where(function ($query) {
                 $query->whereIn('extension', $mimes = $this->getVideoMimes())
                     ->orWhereIn('type', $mimes);
@@ -94,7 +94,7 @@ trait Relations
      */
     public function document(): MorphOne
     {
-        return $this->morphOne(Upload::class, 'uploadable')
+        return $this->morphOne(config('uploadable.uploads_model', Upload::class), 'uploadable')
             ->where(function ($query) {
                 $query->whereIn('extension', $mimes = $this->getDocumentMimes())
                     ->orWhereIn('type', $mimes);
@@ -109,7 +109,7 @@ trait Relations
      */
     public function documents(): MorphMany
     {
-        return $this->morphMany(Upload::class, 'uploadable')
+        return $this->morphMany(config('uploadable.uploads_model', Upload::class), 'uploadable')
             ->where(function ($query) {
                 $query->whereIn('extension', $mimes = $this->getDocumentMimes())
                     ->orWhereIn('type', $mimes);

@@ -223,7 +223,8 @@ final class Upload
             $fullpath = $this->storage->upload($uploadedFile, $path, $filename, $storageOptions);
             $this->fullpaths[] = $fullpath;
 
-            $upload = new ModelsUpload();
+            /** @var ModelsUpload $upload */
+            $upload = new $this->options->uploadModelClass;
             $upload->path = $fullpath;
             $upload->name = $filename;
             $upload->original_name = $uploadedFile->getClientOriginalName();
@@ -260,7 +261,7 @@ final class Upload
         }
     }
 
-    private function assignUploadAttributes(ModelsUpload $upload): void
+    private function assignUploadAttributes(Model $upload): void
     {
         collect($this->options->uploadAttributes)->each(function ($value, $key) use ($upload) {
             $upload->$key = $value;
@@ -283,9 +284,9 @@ final class Upload
     /**
      * Callback before saving the upload.
      *
-     * @param  ModelsUpload  $upload  The upload model.
+     * @param  Model  $upload  The upload model.
      */
-    private function beforeSavingUpload(ModelsUpload $upload): void
+    private function beforeSavingUpload(Model $upload): void
     {
         $callback = $this->options->beforeSavingUploadUsing;
 
