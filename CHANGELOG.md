@@ -2,7 +2,7 @@
 
 All notable changes to `uploadable` will be documented in this file.
 
-## [v1.2.0] - 2024-07-13
+## [v1.2.0] - 2024-07-23
 
 ### Added
 - [Add the ability to upload the file to a different disk](https://github.com/nadlambino/laravel-uploadable/pull/16/commits/78b30262075763f4c576024d09fb1e3b9a0b072b)
