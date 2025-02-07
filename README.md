@@ -42,12 +42,6 @@ php artisan migrate
 > 
 > You can add more fields to the uploads table according to your needs, but the existing fields should remain.
 
-Optionally, you can publish the Upload model using
-
-```bash
-php artisan vendor:publish --tag="uploadable-model"
-```
-
 You can publish the config file with:
 
 ```bash
